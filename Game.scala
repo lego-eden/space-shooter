@@ -1,20 +1,17 @@
-import bearlyb.video.Window
-import bearlyb.render.Renderer
-import bearlyb.render.Texture
-import bearlyb.events.Event
+import scala.collection.mutable.ArrayBuffer
 
-import scala.util.boundary
-
-case class Game(
-  w: Window,
-  r: Renderer,
-  ship: Ship,
+class Game(
+  entities: ArrayBuffer[Entity],
 ):
-  def step(dt: Double)(using inputState: InputState): Game =
-    copy(
-      ship = ship.step(dt)
-    )
-  end step
+  def step(dt: Double)(using inputState: InputState): Unit =
+    entities.foreach(_.step(dt))
 
-  def draw()(using r: Renderer): Unit =
-    ship.draw()
+  def draw(camera: Camera): Unit =
+    entities.iterator
+      .foreach(camera.draw)
+
+  def addEntity(e: Entity): Unit =
+    entities += e
+
+object Game:
+  def apply(): Game = new Game(ArrayBuffer.empty)

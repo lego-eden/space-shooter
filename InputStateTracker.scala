@@ -16,11 +16,11 @@ class InputStateTracker(
     justPressedSet.clear()
     justReleasedSet.clear()
 
-  def registerDown(key: Scancode) =
+  def registerDown(key: Scancode): Unit =
     justPressedSet += key
     keyDownSet += key
 
-  def registerUp(key: Scancode) =
+  def registerUp(key: Scancode): Unit =
     justReleasedSet += key
     keyDownSet -= key
 

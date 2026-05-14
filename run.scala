@@ -4,29 +4,27 @@ import bl.rect.Rect
 import bl.Event
 
 import scala.util.boundary
-import bl.render.Renderer
 import bl.video.Window
 import bl.render.Renderer.LogicalPresentation
-import bl.pixels.PixelFormat
-import bl.render.TextureAccess
-import bl.surface.ScaleMode
-
-val (worldW, worldH) = (150*2, 100*2)
 
 def run(): Unit =
-  val w = Window("Space game", worldW*8, worldH*8, Window.Flag.Fullscreen, Window.Flag.Resizable)
-  val r = w.renderer
-  val worldTex = r.createTexture(PixelFormat.RGBA8888, TextureAccess.Target, worldW, worldH)
-  worldTex.scaleMode = ScaleMode.Nearest
+  val TileSize = 8
+  lazy val MaxTilesVisible = 30
+  var (worldW, worldH) = ((MaxTilesVisible*1.5).toInt*TileSize, MaxTilesVisible*TileSize)
 
-  val ship = Ship(worldW/2, worldH/2, 0)
-  var game = Game(w, r, ship)
+  val w = Window("Space game", worldW*4, worldH*4, Window.Flag.Fullscreen, Window.Flag.Resizable)
+  val r = w.renderer
+
+  val ship = Ship((0, 0), 0)
+  val cam = Camera(r, (0, 0), (worldW, worldH))
+  val game = Game()
+  game.addEntity(ship)
   val inputState = InputStateTracker()
   val clock = Clock()
   var time = 0.0
   var fps = 0.0
 
-  boundary:
+  boundary {
     while true do
       inputState.step() // clear the justPressed and justReleased cache
       Event.pollEvents().foreach:
@@ -35,22 +33,27 @@ def run(): Unit =
           inputState.registerDown(sc)
         case Event.Key.Up(scancode=sc) =>
           inputState.registerUp(sc)
+        case Event.Window.Resized(w=newW, h=newH) => 
+          val timesTilesVisible = ((newW min newH) / (MaxTilesVisible*TileSize)) max 1
+          worldW = newW / timesTilesVisible
+          worldH = newH / timesTilesVisible
+          cam.resize(worldW, worldH)          
         case _ =>
 
-      game = game.step(clock.deltaDouble)(using inputState)
+      game.step(clock.deltaDouble)(using inputState)
 
       r.drawColor = (255, 255, 255, 255)
       r.clear()
 
-      r.target = Some(worldTex)
+      r.target = Some(cam.tex)
       r.drawColor = (0, 0, 0, 255)
       r.clear()
 
-      game.draw()(using r)
+      game.draw(cam)
 
       r.target = None
       r.logicalPresentation = (worldW, worldH, LogicalPresentation.IntegerScale)
-      r.renderTexture[Double](worldTex)
+      r.renderTexture[Double](cam.tex)
       r.logicalPresentation = (0, 0, LogicalPresentation.Disabled)
 
       if time > 0.35 then
@@ -58,7 +61,7 @@ def run(): Unit =
         time -= 0.35
       time += clock.deltaDouble
 
-      r.renderScale = (3, 3)
+      r.renderScale = (2, 2)
       r.drawColor = (255, 255, 0, 255)
       r.fillRect(Rect(0, 0, 8*5, 8))
       r.drawColor = (0, 0, 0, 255)
@@ -67,7 +70,8 @@ def run(): Unit =
 
       r.present()
 
-      clock.tick()
+      clock.tick(): Unit
     end while
+  }
 end run
 

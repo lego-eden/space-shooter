@@ -6,14 +6,10 @@ import bearlyb.pixels.PixelFormat
 import bearlyb.render.TextureAccess
 import bearlyb.surface.ScaleMode
 
-class Camera private (r: Renderer, pos: Vec[Double], var tex: Texture):
+class Camera private (val r: Renderer, var pos: Vec[Double], var tex: Texture):
 
   def draw(entity: Entity): Unit =
-    val oldPos = entity.pos
-    val texDim = (tex.w.toDouble, tex.h.toDouble)
-    entity.pos = entity.pos - pos + texDim.map(_/2)
-    entity.draw()(using Camera.Drawing(r))
-    entity.pos = oldPos
+    entity.draw()(using Camera.Drawing(this))
 
   def resize(dim: Vec[Int]): Unit =
     tex.destroy()
@@ -26,6 +22,8 @@ object Camera:
       tex.scaleMode = ScaleMode.Nearest
       new Camera(r, pos, tex)
 
-
-  case class Drawing private[Camera] (private val r: Renderer):
-    export r.*
+  case class Drawing private[Camera] (private val cam: Camera):
+    export cam.r.*
+    def screenPos(p: Vec[Double]): Vec[Double] =
+      val texDim = (cam.tex.w.toDouble, cam.tex.h.toDouble)
+      p - cam.pos + texDim.map(_/2)

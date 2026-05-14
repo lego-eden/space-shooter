@@ -23,15 +23,15 @@ class Ship(var pos: Vec[Double], var dir: Double) extends Entity:
     drawLine(wingTipLeft, shipBack)
   end draw
 
-  def offset(d: Vec[Double]) =
-    pos + d.rotate(dir)
+  def offset(d: Vec[Double])(using Camera.Drawing) =
+    screenPos + d.rotate(dir)
 
-  def shipFront    = offset( 0.0, -10.0)
-  def shipBack     = offset( 0.0,   3.0)
-  def wingTipLeft  = offset(-8.0,   6.0)
-  def wingTipRight = offset( 8.0,   6.0)
+  def shipFront(using Camera.Drawing)    = offset( 0.0, -10.0)
+  def shipBack(using Camera.Drawing)     = offset( 0.0,   3.0)
+  def wingTipLeft(using Camera.Drawing)  = offset(-8.0,   6.0)
+  def wingTipRight(using Camera.Drawing) = offset( 8.0,   6.0)
 
 end Ship
 
 object Ship:
-  val turnRate = (2*math.Pi / 0.4)
+  val turnRate = (2*math.Pi / 0.6)

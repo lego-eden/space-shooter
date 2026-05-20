@@ -15,11 +15,13 @@ def run(): Unit =
   val w = Window("Space game", worldW*4, worldH*4, Window.Flag.Fullscreen, Window.Flag.Resizable)
   val r = w.renderer
 
-  val ship = Ship((0, 0), 0)
-  val cam = Camera(r, (0, 0), (worldW, worldH))
+  val ship = Ship((0, 0), (0, 0), 0)
+  val cam = Camera(r, (0, 0), (worldW, worldH), ship)
   val game = Game()
-  game.addEntity(ship)
-  val inputState = InputStateTracker()
+  game.add(ship, cam)
+  val spaceDust = Seq.fill(2000)(SpaceDust.randomSpaceDust(cam.rect))
+  game.add(spaceDust*)
+  val inputState = State(cam)
   val clock = Clock()
   var time = 0.0
   var fps = 0.0
@@ -37,7 +39,7 @@ def run(): Unit =
           val timesTilesVisible = ((newW min newH) / (MaxTilesVisible*TileSize)) max 1
           worldW = newW / timesTilesVisible
           worldH = newH / timesTilesVisible
-          cam.resize(worldW, worldH)          
+          cam.resize(worldW, worldH)
         case _ =>
 
       game.step(clock.deltaDouble)(using inputState)

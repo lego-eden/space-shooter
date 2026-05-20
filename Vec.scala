@@ -1,3 +1,6 @@
+import bearlyb.rect.Rect
+import scala.util.Random
+
 type Vec[A] = (A, A)
 object Vec:
   extension [A](u: Vec[A])
@@ -9,6 +12,7 @@ object Vec:
   extension [A: Numeric as num](u: Vec[A])
     def +(v: Vec[A]) = u.zip(v).map(num.plus)
     def -(v: Vec[A]) = u.zip(v).map(num.minus)
+    def *(a: A): Vec[A] = u.map(num.times(_, a))
     def unary_- = u.map(num.negate)
 
     /** [ cos(angle) -sin(angle) ] => [ cos(angle)*u.x - sin(angle)*u.y ]
@@ -23,5 +27,14 @@ object Vec:
         s*xDouble + c*yDouble
       )
   end extension
-      
+
+  extension [A: Numeric](a: A)
+    inline def *(u: Vec[A]): Vec[A] = u*a
+
+  inline def randomInRect(rect: Rect[Double]): Vec[Double] =
+    (
+      Random.between(rect.x, rect.xmax),
+      Random.between(rect.y, rect.ymax),
+    )
+    
 end Vec

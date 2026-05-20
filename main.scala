@@ -1,4 +1,4 @@
-//> using dep io.github.lego-eden::bearlyb::0.2.1
+//> using dep io.github.lego-eden::bearlyb::0.2.2
 //> using option -Wall
 
 import bearlyb as bl

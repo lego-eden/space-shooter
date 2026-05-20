@@ -3,13 +3,21 @@ import Vec.*
 
 import scala.math
 
-class Ship(var pos: Vec[Double], var dir: Double) extends Entity:
-  def step(dt: Double)(using inputState: InputState): Unit =
+class Ship(var pos: Vec[Double], var vel: Vec[Double], var dir: Double) extends Entity, KinematicBody:
+  def step(dt: Double)(using inputState: State): Unit =
     import inputState.*
     if keyDown(Scancode.Left) then
       turn(-Ship.turnRate*dt)
     if keyDown(Scancode.Right) then
       turn(Ship.turnRate*dt)
+
+    val acc: Vec[Double] =
+      if keyDown(Scancode.Up) then
+        (1, 0).rotate(dir) * Ship.accel
+      else 
+        (0, 0)
+
+    move(acc, dt)
 
   def turn(angle: Double): Unit = dir += angle
 
@@ -24,14 +32,15 @@ class Ship(var pos: Vec[Double], var dir: Double) extends Entity:
   end draw
 
   def offset(d: Vec[Double])(using Camera.Drawing) =
-    screenPos + d.rotate(dir)
+    screenPos.map(_.toInt.toDouble) + d.rotate(dir)
 
-  def shipFront(using Camera.Drawing)    = offset( 0.0, -10.0)
-  def shipBack(using Camera.Drawing)     = offset( 0.0,   3.0)
-  def wingTipLeft(using Camera.Drawing)  = offset(-8.0,   6.0)
-  def wingTipRight(using Camera.Drawing) = offset( 8.0,   6.0)
+  def shipFront(using Camera.Drawing)    = offset(10.0,  0.0)
+  def shipBack(using Camera.Drawing)     = offset(-3.0,  0.0)
+  def wingTipLeft(using Camera.Drawing)  = offset(-6.0,  8.0)
+  def wingTipRight(using Camera.Drawing) = offset(-6.0, -8.0)
 
 end Ship
 
 object Ship:
   val turnRate = (2*math.Pi / 0.6)
+  val accel = 100.0

@@ -1,4 +1,5 @@
-//> using dep io.github.lego-eden::bearlyb::0.2.2
+//> using scala 3.8.3
+//> using dep io.github.lego-eden::bearlyb::0.2.3
 //> using option -Wall
 
 import bearlyb as bl

@@ -26,15 +26,51 @@ object Vec:
         c*xDouble - s*yDouble,
         s*xDouble + c*yDouble
       )
-  end extension
+
+    def toIntVec: Vec[Int] = u.map(num.toInt)
+    def toDoubleVec: Vec[Double] = u.map(num.toDouble)
+
+  extension [A: ([t] =>> Fractional[t] | Integral[t]) as num](inline u: Vec[A])
+    inline def /(inline a: A): Vec[A] =
+      inline num match
+        case frac: Fractional[A] => u.map(frac.div(_, a))
+        case inte: Integral[A] => u.map(inte.quot(_, a))
+
+  extension [A: Fractional](from: Vec[A])
+    def lerp(to: Vec[A], t: A): Vec[A] =
+      from + (to - from) * t
 
   extension [A: Numeric](a: A)
     inline def *(u: Vec[A]): Vec[A] = u*a
 
-  inline def randomInRect(rect: Rect[Double]): Vec[Double] =
+  def randomInRect(rect: Rect[Double]): Vec[Double] =
     (
       Random.between(rect.x, rect.xmax),
       Random.between(rect.y, rect.ymax),
     )
-    
+
+  def randomInRect(rect: Rect[Double], notInRect: Rect[Double]): Vec[Double] =
+    // split rect into four rects surrounding the notInRect rect
+    // |----|--------------
+    // |    |             |
+    // |    |             |
+    // |    |--------------
+    // |    |     |       |
+    // |    |     |       |
+    // -----------|       |
+    // |          |       |
+    // |          |       |
+    // -----------|-------|
+    lazy val Rect(rx, ry, _, _) = rect
+    lazy val Rect(nx, ny, _, _) = notInRect
+    lazy val topLeft = Rect(rx, ry, nx-rx, notInRect.ymax-ry)
+    lazy val bottomLeft = Rect(rx, notInRect.ymax, notInRect.xmax-rx, rect.ymax-notInRect.ymax)
+    lazy val bottomRight = Rect(notInRect.xmax, ny, rect.xmax-notInRect.xmax, rect.ymax-ny)
+    lazy val topRight = Rect(nx, ry, rect.xmax-nx, ny-ry)
+    val chosenRect = Random.between(0, 4) match
+      case 0 => topLeft
+      case 1 => bottomLeft
+      case 2 => bottomRight
+      case 3 => topRight
+    randomInRect(chosenRect)
 end Vec

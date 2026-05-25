@@ -41,6 +41,11 @@ class Camera private (
     val (w, h) = (tex.w, tex.h)
     Rect(x-w/2, y-h/2, w, h)
 
+  def resizedRect(n: Int): Rect[Double] =
+    val nOdd = if n % 2 == 0 then n+1 else n
+    val Rect(rx, ry, rw, rh) = rect
+    Rect(rx-rw*(nOdd/2), ry-rh*(nOdd/2), nOdd*rw, nOdd*rh)
+
 object Camera:
   def apply(r: Renderer, pos: Vec[Double], dim: Vec[Int], follow: Entity & KinematicBody): Camera =
       val tex = r.createTexture(PixelFormat.RGBA8888, TextureAccess.Target, dim.x, dim.y)

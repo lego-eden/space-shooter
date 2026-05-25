@@ -18,9 +18,12 @@ def run(): Unit =
   val ship = Ship((0, 0), (0, 0), 0)
   val cam = Camera(r, (0, 0), (worldW, worldH), ship)
   val game = Game()
-  game.add(ship, cam)
+  val asteroids = AsteroidCluster.fillWithin(1000, cam.resizedRect(3), cam.rect)
   val spaceDust = Seq.fill(2000)(SpaceDust.randomSpaceDust(cam.rect))
   game.add(spaceDust*)
+  game.add(ship)
+  game.add(asteroids)
+  game.add(cam)
   val inputState = State(cam)
   val clock = Clock()
   var time = 0.0

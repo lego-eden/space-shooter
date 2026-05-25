@@ -2,16 +2,19 @@ import Camera.Drawing
 import bearlyb.video.BlendMode
 import bearlyb.rect.Rect
 import scala.util.Random
-import Vec.*
 
 class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Double) extends Entity:
+  def containment(windowRect: Rect[Double]): Rect[Double] = 
+    val Rect(rx, ry, rw, rh) = windowRect
+    Rect(rx-rw, ry-rh, 3*rw, 3*rh)
+
   def randomize(windowRect: Rect[Double]): Unit =
-    pos = Vec.randomInRect(windowRect)//.map(_.toInt)
+    pos = Vec.randomInRect(containment(windowRect))
     animationLength = SpaceDust.randomAnimationLength()
     time = 0
 
   override def step(dt: Double)(using inputState: State): Unit =
-    if (!inputState.windowRect.contains(pos)) then
+    if (!containment(inputState.windowRect).contains(pos)) then
       randomize(inputState.windowRect)
     else
       val period = 2*math.Pi*time/animationLength
@@ -25,16 +28,15 @@ class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Dou
     val opacity = (-math.cos(period)*0.5)+0.5
 
     drawBlendMode = BlendMode.Blend
-    drawColorFloat = (1,1,1,opacity.toFloat)
+    drawColorFloat = (1f,1f,1f,opacity.toFloat*0.75f)
     drawPoint(screenPos)
 
 object SpaceDust:
   def randomAnimationLength(): Double =
-    Random.between(3.0, 8.0)
+    Random.between(0.5, 5.0)
 
   def randomSpaceDust(windowRect: Rect[Double]): SpaceDust =
-    new SpaceDust(
-      Vec.randomInRect(windowRect).map(_.toInt),
-      0,
-      randomAnimationLength(),
-    )
+    val dust = new SpaceDust((0, 0), 0, 1)
+    dust.randomize(windowRect)
+    dust
+

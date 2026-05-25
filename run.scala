@@ -16,12 +16,14 @@ def run(): Unit =
   val r = w.renderer
 
   val ship = Ship((0, 0), (0, 0), 0)
-  val cam = Camera(r, (0, 0), (worldW, worldH), ship)
+  val shipFollow = ShipFollow(ship, (0,0))
+  val cam = Camera(r, (0, 0), (worldW, worldH), shipFollow)
   val game = Game()
-  val asteroids = AsteroidCluster.fillWithin(1000, cam.resizedRect(3), cam.rect)
+  val asteroids = AsteroidCluster.fillWithin(50, cam.resizedRect(3), cam.rect)
   val spaceDust = Seq.fill(2000)(SpaceDust.randomSpaceDust(cam.rect))
   game.add(spaceDust*)
   game.add(ship)
+  game.add(shipFollow)
   game.add(asteroids)
   game.add(cam)
   val inputState = State(cam)

@@ -27,8 +27,13 @@ class Asteroid(
 
     move((0,0), dt)
 
+  def renderAngle: Double =
+    val snapToN = 20.0
+    val snapAngle = 2*math.Pi / snapToN
+    (angle / snapAngle).floor * snapAngle
+
   def cornersOnScreen(using Drawing): Seq[Vec[Double]] =
-    (corners :+ corners.head).map(p => screenPos + p.rotate(angle))
+    (corners :+ corners.head).map(p => screenPos + p.rotate(renderAngle).floor)
 
   override def draw()(using drawing: Drawing): Unit =
     import drawing.*
@@ -45,7 +50,7 @@ class Asteroid(
   override def hashCode: Int = id
 
 object Asteroid:
-  val Speed = 0.0 // 20.0
+  val Speed = 20.0
 
   enum Size:
     case Small, Medium, Large

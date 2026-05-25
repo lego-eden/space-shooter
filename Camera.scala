@@ -12,16 +12,11 @@ class Camera private (
     val r: Renderer,
     var tex: Texture,
     var pos: Vec[Double],
-    var vel: Vec[Double],
-    val follow: Entity & KinematicBody,
-) extends Entity, KinematicBody:
-  import Camera.{PositionMod, VelocityMod}
+    val follow: Entity,
+) extends Entity:
 
   def step(dt: Double)(using inputState: State): Unit =
-    val posDelta = (follow.pos - pos) * PositionMod
-    val velDelta = (follow.vel - vel) * VelocityMod
-    val acc = posDelta + velDelta
-    move(acc, dt)
+    pos = pos.lerp(follow.pos, 1.0 - math.pow(Camera.FollowSpeed, dt))
 
   def draw(entity: Entity): Unit =
     entity.draw()(using Camera.Drawing(this))
@@ -34,7 +29,7 @@ class Camera private (
 
   def followScreenPos: Vec[Double] =
     val texDim = (tex.w, tex.h).map(_.toDouble)
-    (follow.pos - pos + texDim.map(_/2)).map(_.round.toDouble)
+    (follow.pos - pos + texDim.map(_/2)).map(_.floor)
 
   def rect: Rect[Double] =
     val (x, y) = pos
@@ -47,17 +42,19 @@ class Camera private (
     Rect(rx-rw*(nOdd/2), ry-rh*(nOdd/2), nOdd*rw, nOdd*rh)
 
 object Camera:
-  def apply(r: Renderer, pos: Vec[Double], dim: Vec[Int], follow: Entity & KinematicBody): Camera =
+  def apply(r: Renderer, pos: Vec[Double], dim: Vec[Int], follow: Entity): Camera =
       val tex = r.createTexture(PixelFormat.RGBA8888, TextureAccess.Target, dim.x, dim.y)
       tex.scaleMode = ScaleMode.Nearest
-      new Camera(r, tex, pos, (0,0), follow)
+      new Camera(r, tex, pos, follow)
 
   case class Drawing private[Camera] (private val cam: Camera):
     export cam.r.*
     def screenPosOf(p: Vec[Double]): Vec[Double] =
-      val followScreenPos = cam.followScreenPos
-      val offset = p - cam.follow.pos.map(_.toInt.toDouble)
-      followScreenPos + offset
+      // val followScreenPos = cam.followScreenPos
+      // val offset = p - cam.follow.pos.map(_.toInt.toDouble)
+      // followScreenPos + offset
+      
+      (p - cam.pos + cam.tex.dim.toDoubleVec/2.0).floor
 
-  val PositionMod = 10.0
-  val VelocityMod = math.sqrt(PositionMod)
+  val FollowSpeed = 0.05
+  // val FollowSpeed = 0.01

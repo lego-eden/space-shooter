@@ -40,6 +40,9 @@ object Vec:
     def lerp(to: Vec[A], t: A): Vec[A] =
       from + (to - from) * t
 
+  extension (u: Vec[Double])
+    def floor: Vec[Double] = u.map(_.floor)
+
   extension [A: Numeric](a: A)
     inline def *(u: Vec[A]): Vec[A] = u*a
 

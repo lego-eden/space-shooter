@@ -1,6 +1,7 @@
 import scala.collection.mutable.HashSet as MutSet
 import scala.collection.mutable.ArrayDeque
 import bearlyb.rect.Rect
+import util.*
 
 class AsteroidCluster(val asteroids: MutSet[Asteroid]) extends Entity:
 
@@ -35,6 +36,6 @@ object AsteroidCluster:
     for _ <- 0 until numAsteroids do
       cluster.create(
         Asteroid.Size.random(),
-        Vec.randomInRect(boundary, notWithin)
+        Vec.randomInRect(boundary, notWithin.expand(100.0))
       )
     cluster

@@ -2,6 +2,7 @@ import Camera.Drawing
 import bearlyb.video.BlendMode
 import bearlyb.rect.Rect
 import scala.util.Random
+import Vec.*
 
 class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Double) extends Entity:
   def containment(windowRect: Rect[Double]): Rect[Double] = 
@@ -9,7 +10,7 @@ class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Dou
     Rect(rx-rw, ry-rh, 3*rw, 3*rh)
 
   def randomize(windowRect: Rect[Double]): Unit =
-    pos = Vec.randomInRect(containment(windowRect))
+    pos = Vec.randomInRect(containment(windowRect)).floor
     animationLength = SpaceDust.randomAnimationLength()
     time = 0
 

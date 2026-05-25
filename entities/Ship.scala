@@ -5,7 +5,6 @@ import bearlyb.render.VertexBuffer
 import scala.math
 import scala.util.Using
 import bearlyb.render.Vertex
-import bearlyb.rect.Rect
 
 class Ship(var pos: Vec[Double], var vel: Vec[Double], var dir: Double) extends Entity, KinematicBody:
   def step(dt: Double)(using inputState: State): Unit =
@@ -43,7 +42,7 @@ class Ship(var pos: Vec[Double], var vel: Vec[Double], var dir: Double) extends 
 
   def offset(d: Vec[Double])(using Camera.Drawing) =
     // screenPos.map(_.toInt.toDouble) + d.rotate(dir)
-    (screenPos.toIntVec + d.rotate(dir).toIntVec).toDoubleVec
+    (screenPos + d.rotate(dir).floor)
 
   def shipFront(using Camera.Drawing)    = offset(10.0,  0.0)
   def shipBack(using Camera.Drawing)     = offset(-3.0,  0.0)
@@ -54,4 +53,4 @@ end Ship
 
 object Ship:
   val turnRate = (2*math.Pi / 0.6)
-  val accel = 100.0
+  val accel = 200.0

@@ -1,8 +1,12 @@
+package spacegame
+
 import Camera.Drawing
 import bearlyb.video.BlendMode
 import bearlyb.rect.Rect
 import scala.util.Random
 import Vec.*
+
+import util.*
 
 class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Double) extends Entity:
   def containment(windowRect: Rect[Double]): Rect[Double] = 
@@ -15,13 +19,12 @@ class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Dou
     time = 0
 
   override def step(dt: Double)(using inputState: State): Unit =
-    if (!containment(inputState.windowRect).contains(pos)) then
+    val period = 2*math.Pi*time/animationLength
+    if period >= 2*math.Pi then
       randomize(inputState.windowRect)
-    else
-      val period = 2*math.Pi*time/animationLength
-      if period >= 2*math.Pi then
-        randomize(inputState.windowRect)
-      time += dt
+    time += dt
+    val wrappingRect = containment(inputState.windowRect)
+    pos = pos.wrap(wrappingRect)
 
   override def draw()(using drawing: Drawing): Unit =
     import drawing.*

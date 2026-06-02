@@ -1,8 +1,11 @@
+package spacegame
+
 import Camera.Drawing
 import Vec.*
+import util.*
 
 import scala.util.Random
-import scala.util.Using
+import scala.util.Using.Releasable
 import bearlyb.render.VertexBuffer
 import bearlyb.render.Vertex
 
@@ -13,17 +16,32 @@ class Asteroid(
     var angle: Double,
     var secondsPerRotation: Double,
     val corners: Seq[Vec[Double]],
-)(using cluster: AsteroidCluster) extends Entity, KinematicBody:
+    val cluster: AsteroidCluster,
+    var vertexBuffer: Option[VertexBuffer] = None,
+) extends Entity, KinematicBody:
+
+  lazy val vertBuf =
+    lazy val vert = Vertex((0f, 0f), (0f, 0f, 0f, 1f), (0f, 0f))
+    vertexBuffer.getOrElse:
+      val buf = VertexBuffer.from(Seq.fill(corners.size+1)(vert))
+      vertexBuffer = Some(buf)
+      buf
+
 
   def rotationSpeed: Double = 2*math.Pi / secondsPerRotation
-  def destroy(): Unit = cluster.destroy(this)
+  override def destroy(): Unit =
+    vertexBuffer.foreach: buf =>
+      summon[Releasable[VertexBuffer]].release(buf)
+    cluster.destroy(this)
 
-  override def step(dt: Double)(using inputState: State): Unit =
+  override def step(dt: Double)(using state: State): Unit =
     angle += rotationSpeed * dt
     if angle < 0 then
       angle += 2*math.Pi
     else if angle > 2*math.Pi then
       angle -= 2*math.Pi
+
+    pos = pos.wrap(state.windowRect.expandN(3))
 
     move((0,0), dt)
 
@@ -33,18 +51,30 @@ class Asteroid(
     (angle / snapAngle).floor * snapAngle
 
   def cornersOnScreen(using Drawing): Seq[Vec[Double]] =
-    (corners :+ corners.head).map(p => screenPos + p.rotate(renderAngle).floor)
+    corners.map(p => screenPos + p.rotate(renderAngle).floor)
 
   override def draw()(using drawing: Drawing): Unit =
     import drawing.*
     val corners = cornersOnScreen
 
-    val triangles = corners.sliding(2).flatMap(pair => pair :+ screenPos).toSeq
-    Using.resource(VertexBuffer.from(triangles.map(p => Vertex(p+(0.5,0.5), (0,0,0,255), (0.0,0.0))))): verts =>
-      renderGeometry(verts)
+    // val triangles = corners.sliding(2).flatMap(pair => pair :+ screenPos).toSeq
+    // Using.resource(VertexBuffer.from(triangles.map(p => Vertex(p+(0.5,0.5), (0,0,0,255), (0.0,0.0))))): verts =>
+    //   renderGeometry(verts)
+    val cornersWithMiddle = corners :+ screenPos
+    var i = 0
+    vertBuf.mapInPlace: oldVert =>
+      val newVert = oldVert.copy(pos=cornersWithMiddle(i).map(_.toFloat+0.5f))
+      i += 1
+      newVert
+    : Unit
+    val triangleIndices = (corners.indices.toSeq :+ 0)
+      .sliding(2)
+      .flatMap(pair => pair :+ corners.length)
+      .toIndexedSeq
+    renderGeometry(vertBuf, indices=triangleIndices)
 
     drawColorFloat = (1f,1f,1f,1f)
-    drawLines(corners)
+    drawLines(corners :+ corners.head)
   end draw
 
   override def hashCode: Int = id
@@ -91,7 +121,7 @@ object Asteroid:
       val i = Random.between(0, values.length)
       values(i)
 
-  def random(id: Int, pos: Vec[Double], size: Size)(using AsteroidCluster): Asteroid =
+  def random(id: Int, pos: Vec[Double], size: Size, cluster: AsteroidCluster): Asteroid =
     val angle = Random.between(0, 2*math.Pi)
     val vel = (Speed, 0.0).rotate(angle)
     val secondsPerRotation = Random.between(3.0, 5.0)
@@ -104,6 +134,7 @@ object Asteroid:
       angle,
       secondsPerRotation*rotationDir,
       corners,
+      cluster
     )
   
 end Asteroid

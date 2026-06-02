@@ -1,3 +1,5 @@
+package spacegame
+
 import scala.collection.mutable.HashSet as MutSet
 import scala.collection.mutable.ArrayDeque
 import bearlyb.rect.Rect
@@ -13,16 +15,17 @@ class AsteroidCluster(val asteroids: MutSet[Asteroid]) extends Entity:
   override def draw()(using Camera.Drawing): Unit =
     asteroids.foreach(_.draw())
 
-  given AsteroidCluster = this
-
   def create(size: Asteroid.Size, pos: Vec[Double]): Unit =
     val id = nextId()
-    val wasAdded = asteroids.add(Asteroid.random(id, pos, size))
+    val wasAdded = asteroids.add(Asteroid.random(id, pos, size, this))
     assert(wasAdded, s"The asteroid with id $id already existed")
 
   def destroy(a: Asteroid): Unit =
     val wasRemoved = asteroids.remove(a)
     assert(wasRemoved, s"The asteroid with id ${a.id} did not exist when it was destroyed")
+
+  override def destroy(): Unit =
+    asteroids.foreach(destroy)
 
   private var _nextId = -1
   private val reuse = ArrayDeque.empty[Int]

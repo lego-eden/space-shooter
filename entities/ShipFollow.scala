@@ -1,6 +1,6 @@
+package spacegame
+
 import Vec.*
-import Camera.Drawing
-import bearlyb.rect.Rect
 
 case class ShipFollow(val target: Ship, var pos: Vec[Double]) extends Entity:
   def step(dt: Double)(using inputState: State): Unit =
@@ -9,5 +9,6 @@ case class ShipFollow(val target: Ship, var pos: Vec[Double]) extends Entity:
     pos = target.pos + velOffset + lookOffset
 
 object ShipFollow:
-  val FollowAhead = 0.4
+  // val FollowAhead = 0.4
+  val FollowAhead = 0.35
   val LookOffset = 20.0

@@ -1,3 +1,5 @@
+package spacegame
+
 import bearlyb.scancode.Scancode
 
 import scala.collection.mutable.Set as MutSet
@@ -8,6 +10,7 @@ class State(
   val keyDown: MutSet[Scancode],
   val justReleased: MutSet[Scancode],
   val camera: Camera,
+  val debug: Debug,
 ):
   def keyUp(key: Scancode) = !keyDown(key)
 
@@ -27,10 +30,11 @@ class State(
     camera.rect
 
 object State:
-  def apply(camera: Camera): State =
+  def apply(camera: Camera, debug: Debug): State =
     new State(
       justPressed = MutSet.empty,
       keyDown = MutSet.empty,
       justReleased = MutSet.empty,
       camera = camera,
+      debug = debug,
     )

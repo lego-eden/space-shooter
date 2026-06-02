@@ -1,3 +1,5 @@
+package spacegame
+
 import bearlyb.scancode.Scancode
 import Vec.*
 import bearlyb.render.VertexBuffer
@@ -41,7 +43,6 @@ class Ship(var pos: Vec[Double], var vel: Vec[Double], var dir: Double) extends 
   end draw
 
   def offset(d: Vec[Double])(using Camera.Drawing) =
-    // screenPos.map(_.toInt.toDouble) + d.rotate(dir)
     (screenPos + d.rotate(dir).floor)
 
   def shipFront(using Camera.Drawing)    = offset(10.0,  0.0)

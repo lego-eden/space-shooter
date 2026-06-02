@@ -1,7 +1,7 @@
 # most of this code has been yoinked from the nixpkgs version of SDL, before they changed it to be statically built
 {
   pkgs ? import (
-    fetchTarball "https://github.com/NixOS/nixpkgs/archive/00c21e4c93d963c50d4c0c89bfa84ed6e0694df2.tar.gz"
+    fetchTarball "https://github.com/NixOS/nixpkgs/archive/4df1b885d76a54e1aa1a318f8d16fd6005b6401f.tar.gz"
   ) {}
 }:
 let
@@ -72,7 +72,7 @@ in
     ibusSupport -> dbusSupport
   ) "SDL3 requires dbus support to enable ibus";
   pkgs.mkShell rec {
-    buildInputs = dlopenBuildInputs;
+    buildInputs = dlopenBuildInputs ++ [pkgs.javaPackages.compiler.temurin-bin.jdk-26];
 
     # Many dependencies are not directly linked to, but dlopen()'d at runtime. Adding them to the RPATH
     # helps them be found

@@ -1,3 +1,5 @@
+package spacegame
+
 import bearlyb.rect.Rect
 import scala.util.Random
 

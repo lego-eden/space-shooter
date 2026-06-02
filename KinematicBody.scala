@@ -1,3 +1,5 @@
+package spacegame
+
 import Vec.*
 
 trait KinematicBody:

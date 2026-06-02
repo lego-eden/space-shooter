@@ -1,3 +1,5 @@
+package spacegame
+
 import bearlyb as bl
 import bl.time.Clock
 import bl.rect.Rect
@@ -6,6 +8,8 @@ import bl.Event
 import scala.util.boundary
 import bl.video.Window
 import bl.render.Renderer.LogicalPresentation
+
+import util.*
 
 def run(): Unit =
   val TileSize = 8
@@ -19,27 +23,29 @@ def run(): Unit =
   val shipFollow = ShipFollow(ship, (0,0))
   val cam = Camera(r, (0, 0), (worldW, worldH), shipFollow)
   val game = Game()
-  val asteroids = AsteroidCluster.fillWithin(50, cam.resizedRect(3), cam.rect)
-  val spaceDust = Seq.fill(2000)(SpaceDust.randomSpaceDust(cam.rect))
+  val spaceDust = Seq.fill(1000)(SpaceDust.randomSpaceDust(cam.rect))
+  val debug = Debug()
+  val state = State(cam, debug)
+  val asteroids = AsteroidCluster.fillWithin(50, state.windowRect.expandN(3), state.windowRect)
+  game.add(cam)
   game.add(spaceDust*)
   game.add(ship)
   game.add(shipFollow)
   game.add(asteroids)
-  game.add(cam)
-  val inputState = State(cam)
+  game.add(debug)
   val clock = Clock()
   var time = 0.0
   var fps = 0.0
 
   boundary {
     while true do
-      inputState.step() // clear the justPressed and justReleased cache
+      state.step() // clear the justPressed and justReleased cache
       Event.pollEvents().foreach:
         case Event.Quit(_) => boundary.break()
         case Event.Key.Down(scancode=sc) =>
-          inputState.registerDown(sc)
+          state.registerDown(sc)
         case Event.Key.Up(scancode=sc) =>
-          inputState.registerUp(sc)
+          state.registerUp(sc)
         case Event.Window.Resized(w=newW, h=newH) => 
           val timesTilesVisible = ((newW min newH) / (MaxTilesVisible*TileSize)) max 1
           worldW = newW / timesTilesVisible
@@ -47,7 +53,7 @@ def run(): Unit =
           cam.resize(worldW, worldH)
         case _ =>
 
-      game.step(clock.deltaDouble)(using inputState)
+      game.step(clock.deltaDouble)(using state)
 
       r.drawColor = (255, 255, 255, 255)
       r.clear()
@@ -80,5 +86,6 @@ def run(): Unit =
       clock.tick(): Unit
     end while
   }
+  game.destroy()
 end run
 

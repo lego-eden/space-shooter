@@ -50,20 +50,20 @@ let
       wayland
     ]
     ++ lib.optionals x11Support [
-      xorg.libX11
-      xorg.libXScrnSaver
-      xorg.libXcursor
-      xorg.libXext
-      xorg.libXfixes
-      xorg.libXi
-      xorg.libXrandr
+      libX11
+      libXScrnSaver
+      libXcursor
+      libXext
+      libXfixes
+      libXi
+      libXrandr
     ]
     ++ [
       vulkan-headers
       vulkan-loader
     ]
     ++ lib.optional (openglSupport && !stdenv.hostPlatform.isDarwin) libGL
-    ++ lib.optional x11Support xorg.libX11;
+    ++ lib.optional x11Support libX11;
 in
   assert lib.assertMsg (
     waylandSupport -> openglSupport

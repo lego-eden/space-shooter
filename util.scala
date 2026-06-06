@@ -2,6 +2,9 @@ package spacegame.util
 
 import spacegame.Vec, Vec.*
 import bearlyb.Rect
+import spacegame.{State, Debug}
+
+def debug(using state: State): Debug = state.debug
 
 extension (d: Double)
   def wrap(min: Double, width: Double): Double =

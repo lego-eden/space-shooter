@@ -53,5 +53,5 @@ class Ship(var pos: Vec[Double], var vel: Vec[Double], var dir: Double) extends 
 end Ship
 
 object Ship:
-  val turnRate = (2*math.Pi / 0.6)
+  val turnRate = (2*math.Pi / 0.8)
   val accel = 200.0

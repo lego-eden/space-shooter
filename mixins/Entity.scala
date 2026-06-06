@@ -5,7 +5,7 @@ trait Entity:
   final def screenPos(using drawing: Camera.Drawing): Vec[Double] =
     drawing.screenPosOf(pos)
     
-  def step(dt: Double)(using state: State): Unit
-  def draw()(using drawing: Camera.Drawing): Unit = ()
+  def step(dt: Double)(using State): Unit
+  def draw()(using Camera.Drawing): Unit = ()
   def destroy(): Unit = ()
   

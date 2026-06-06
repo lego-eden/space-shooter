@@ -64,6 +64,12 @@ let
     ]
     ++ lib.optional (openglSupport && !stdenv.hostPlatform.isDarwin) libGL
     ++ lib.optional x11Support libX11;
+
+  # customScala = pkgs.scala-next.override {
+  #   scala = pkgs.scala.override {
+  #     jre = pkgs.javaPackages.compiler.temurin-bin.jdk-25;
+  #   };
+  # };
 in
   assert lib.assertMsg (
     waylandSupport -> openglSupport
@@ -72,7 +78,7 @@ in
     ibusSupport -> dbusSupport
   ) "SDL3 requires dbus support to enable ibus";
   pkgs.mkShell rec {
-    buildInputs = dlopenBuildInputs ++ [pkgs.javaPackages.compiler.temurin-bin.jdk-26];
+    buildInputs = dlopenBuildInputs ++ [pkgs.scala-next];
 
     # Many dependencies are not directly linked to, but dlopen()'d at runtime. Adding them to the RPATH
     # helps them be found

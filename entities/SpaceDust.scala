@@ -18,12 +18,12 @@ class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Dou
     animationLength = SpaceDust.randomAnimationLength()
     time = 0
 
-  override def step(dt: Double)(using inputState: State): Unit =
+  override def step(dt: Double)(using state: State): Unit =
     val period = 2*math.Pi*time/animationLength
     if period >= 2*math.Pi then
-      randomize(inputState.windowRect)
+      randomize(state.windowRect)
     time += dt
-    val wrappingRect = containment(inputState.windowRect)
+    val wrappingRect = containment(state.windowRect)
     pos = pos.wrap(wrappingRect)
 
   override def draw()(using drawing: Drawing): Unit =

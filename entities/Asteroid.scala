@@ -17,21 +17,13 @@ class Asteroid(
     var secondsPerRotation: Double,
     val corners: Seq[Vec[Double]],
     val cluster: AsteroidCluster,
-    var vertexBuffer: Option[VertexBuffer] = None,
+    var vertexBuffer: VertexBuffer,
 ) extends Entity, KinematicBody:
 
-  lazy val vertBuf =
-    lazy val vert = Vertex((0f, 0f), (0f, 0f, 0f, 1f), (0f, 0f))
-    vertexBuffer.getOrElse:
-      val buf = VertexBuffer.from(Seq.fill(corners.size+1)(vert))
-      vertexBuffer = Some(buf)
-      buf
-
-
   def rotationSpeed: Double = 2*math.Pi / secondsPerRotation
+
   override def destroy(): Unit =
-    vertexBuffer.foreach: buf =>
-      summon[Releasable[VertexBuffer]].release(buf)
+    summon[Releasable[VertexBuffer]].release(vertexBuffer)
     cluster.destroy(this)
 
   override def step(dt: Double)(using state: State): Unit =
@@ -62,7 +54,7 @@ class Asteroid(
     //   renderGeometry(verts)
     val cornersWithMiddle = corners :+ screenPos
     var i = 0
-    vertBuf.mapInPlace: oldVert =>
+    vertexBuffer.mapInPlace: oldVert =>
       val newVert = oldVert.copy(pos=cornersWithMiddle(i).map(_.toFloat+0.5f))
       i += 1
       newVert
@@ -71,7 +63,7 @@ class Asteroid(
       .sliding(2)
       .flatMap(pair => pair :+ corners.length)
       .toIndexedSeq
-    renderGeometry(vertBuf, indices=triangleIndices)
+    renderGeometry(vertexBuffer, indices=triangleIndices)
 
     drawColorFloat = (1f,1f,1f,1f)
     drawLines(corners :+ corners.head)
@@ -134,8 +126,13 @@ object Asteroid:
       angle,
       secondsPerRotation*rotationDir,
       corners,
-      cluster
+      cluster,
+      defaultVertexBuffer(corners.size)
     )
+
+  private val DefaultVertex = Vertex((0f, 0f), (0f, 0f, 0f, 1f), (0f, 0f))
+  def defaultVertexBuffer(numCorners: Int): VertexBuffer =
+    VertexBuffer.from(Seq.fill(numCorners+1)(DefaultVertex))
   
 end Asteroid
 

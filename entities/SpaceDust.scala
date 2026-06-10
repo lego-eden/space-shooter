@@ -26,13 +26,12 @@ class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Dou
     val wrappingRect = containment(state.windowRect)
     pos = pos.wrap(wrappingRect)
 
-  override def draw()(using drawing: Drawing): Unit =
+  override def beginDraw()(using drawing: Drawing): Unit =
     import drawing.*
     val period = 2*math.Pi*time/animationLength
     val opacity = (-math.cos(period)*0.5)+0.5
 
-    drawBlendMode = BlendMode.Blend
-    drawColorFloat = (1f,1f,1f,opacity.toFloat*0.75f)
+    drawColorFloat = Color.white.withAlpha(opacity.toFloat*0.75f)
     drawPoint(screenPos)
 
 object SpaceDust:

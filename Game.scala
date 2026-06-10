@@ -2,40 +2,77 @@ package spacegame
 
 import scala.language.experimental.multiSpreads
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, ArrayDeque}
 import scala.util.boundary, boundary.Label as Scope
 import scala.annotation.tailrec
 
 import bearlyb.*
 import bearlyb.time.Clock
 import bearlyb.render.Renderer.LogicalPresentation
+import bearlyb.video.BlendMode
 
 import spacegame.util.*
+import scala.collection.mutable.HashSet
 
 class Game(
   var worldDim: (w: Int, h: Int),
   entities: ArrayBuffer[Entity],
+  spawnQueue: ArrayDeque[Entity],
+  destroyQueue: HashSet[Entity],
   cam: Camera,
-  state: State,
+  debug: Debug,
   clock: Clock,
   var time: Double,
   var fps: Double,
 ):
   import Game.MaxTilesVisible, Game.TileSize
 
+  val state = State(cam, debug, spawn, destroy, isColliding)
+
   def step(dt: Double): Unit =
+    entities.foreach(_.beginStep(dt)(using state))
     entities.foreach(_.step(dt)(using state))
+    entities.foreach(_.endStep(dt)(using state))
 
   def draw(camera: Camera): Unit =
+    entities.foreach(camera.beginDraw)
     entities.foreach(camera.draw)
+    entities.foreach(camera.endDraw)
 
-  def add(e: Entity*): Unit =
-    entities ++= e
+  def spawn(e: Entity): Unit =
+    spawnQueue.append(e)
 
-  def destroy(): Unit =
+  def spawn(e: Entity*): Unit =
+    spawnQueue.appendAll(e)
+
+  def destroy(e: Entity): Unit =
+    // destroyQueue.append(e)
+    destroyQueue += e
+
+  def destroy(e: Entity*): Unit =
+    // destroyQueue.appendAll(e)
+    destroyQueue ++= e
+
+  def doSpawn(): Unit =
+    entities ++= spawnQueue.removeAll()
+
+  def doDestroy(): Unit =
+    for e <- destroyQueue do
+      try
+        e.destroy()(using state)
+      catch case exc =>
+        Console.err.println(s"failed to destroy ${e.toString}: ${exc.getMessage()}")
+        exc.printStackTrace()
+      entities -= e
+
+    destroyQueue.clear()
+
+  def isColliding(e1: Entity, e2: Entity): Boolean = false
+
+  def finish(): Unit =
     for e <- entities do
       try
-        e.destroy()
+        e.destroy()(using state)
       catch case exc =>
         Console.err.println(s"failed to destroy ${e.toString}: ${exc.getMessage()}")
         exc.printStackTrace()
@@ -45,7 +82,7 @@ class Game(
     state.step() // clear the justPressed and justReleased cache
     Event.pollEvents().foreach:
       case Event.Quit(_) => boundary.break()
-      case Event.Key.Down(scancode=sc) =>
+      case Event.Key.Down(scancode=sc, repeat=false) =>
         state.registerDown(sc)
       case Event.Key.Up(scancode=sc) =>
         state.registerUp(sc)
@@ -55,6 +92,9 @@ class Game(
         cam.resize(worldDim)
       case _ =>
 
+    doDestroy()
+    doSpawn()
+
     step(clock.deltaDouble)
 
     val r = cam.r
@@ -63,6 +103,7 @@ class Game(
     r.clear()
 
     r.target = Some(cam.tex)
+    r.drawBlendMode = BlendMode.Blend
     r.drawColor = (0, 0, 0, 255)
     r.clear()
 
@@ -95,7 +136,7 @@ class Game(
   def run(): Unit =
     boundary:
       gameloop()
-    destroy()
+    finish()
 
 object Game:
 
@@ -112,20 +153,23 @@ object Game:
     val ship = Ship((0, 0), (0, 0), 0)
     val shipFollow = ShipFollow(ship, (0,0))
     val cam = Camera(r, (0, 0), worldDim, shipFollow)
-    val state = State(cam, debug)
     val spaceDust = Seq.fill(1000)(SpaceDust.randomSpaceDust(cam.rect))
-    val asteroids = AsteroidCluster.fillWithin(50, state.windowRect.expandN(3), state.windowRect)
 
     val game = new Game(
       worldDim,
       entities = ArrayBuffer.empty,
+      spawnQueue = ArrayDeque.empty,
+      destroyQueue = HashSet.empty, //ArrayDeque.empty,
       cam,
-      state,
+      debug,
       clock = Clock(),
       time = 0.0,
       fps = 0.0,
     )
-    game.add(cam, ship, shipFollow, spaceDust*, asteroids, debug)
+
+    val asteroids = AsteroidCluster.fillWithin(50, game.state.windowRect.expandN(3), game.state.windowRect)(using game.state)
+
+    game.spawn(cam, spaceDust*, ship, shipFollow, asteroids, debug)
     game.run()
 
 end Game

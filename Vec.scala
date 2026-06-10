@@ -29,8 +29,22 @@ object Vec:
         s*xDouble + c*yDouble
       )
 
-    def toIntVec: Vec[Int] = u.map(num.toInt)
-    def toDoubleVec: Vec[Double] = u.map(num.toDouble)
+    inline def sum = num.plus(u.x, u.y)
+
+    def abs: Double =
+      math.sqrt(u.toDoubleVec.map(n => n*n).sum)
+
+    def absSqrd: Double =
+      u.toDoubleVec.map(n => n*n).sum
+
+    inline def normalize: Vec[Double] =
+      u.toDoubleVec / u.abs
+
+    infix def dot(v: Vec[A]): A =
+      u.zip(v).map(num.times).sum
+
+    inline def toIntVec: Vec[Int] = u.map(num.toInt)
+    inline def toDoubleVec: Vec[Double] = u.map(num.toDouble)
 
   extension [A: ([t] =>> Fractional[t] | Integral[t]) as num](inline u: Vec[A])
     inline def /(inline a: A): Vec[A] =

@@ -32,3 +32,15 @@ extension (u: Vec[Double])
     val x = u.x.wrap(rect.x, rect.w)
     val y = u.y.wrap(rect.y, rect.h)
     (x, y)
+
+extension [A: Fractional as frac](from: A)
+  def lerp(to: A, t: A): A =
+    frac.plus(from, frac.times(frac.minus(to, from), t))
+
+
+
+
+
+
+
+

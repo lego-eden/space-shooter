@@ -3,7 +3,7 @@ package spacegame
 import Vec.*
 
 case class ShipFollow(val target: Ship, var pos: Vec[Double]) extends Entity:
-  def step(dt: Double)(using State): Unit =
+  override def step(dt: Double)(using State): Unit =
     val velOffset = target.vel * ShipFollow.FollowAhead
     val lookOffset = (ShipFollow.LookOffset, 0.0).rotate(target.dir)
     pos = target.pos + velOffset + lookOffset

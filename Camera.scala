@@ -17,18 +17,22 @@ class Camera private (
     var pos: Vec[Double],
     val follow: Entity,
 ) extends Entity:
-  def step(dt: Double)(using state: State): Unit =
+  override def beginStep(dt: Double)(using state: State): Unit =
     pos = pos.lerp(follow.pos, 1.0 - math.pow(Camera.FollowSpeed, dt))
 
-  def draw(entity: Entity): Unit =
-    entity.draw()(using Camera.Drawing(this))
-    
+  def beginDraw(e: Entity): Unit =
+    e.beginDraw()(using Camera.Drawing(this))
+
+  def draw(e: Entity): Unit =
+    e.draw()(using Camera.Drawing(this))
+
+  def endDraw(e: Entity): Unit =
+    e.endDraw()(using Camera.Drawing(this))
 
   def resize(dim: Vec[Int]): Unit =
     tex.destroy()
     tex = r.createTexture(PixelFormat.RGBA8888, TextureAccess.Target, dim.x, dim.y)
     tex.scaleMode = ScaleMode.Nearest
-    tex.blendMode = BlendMode.Blend
 
   def rect: Rect[Double] =
     val (x, y) = pos
@@ -41,7 +45,6 @@ object Camera:
   def apply(r: Renderer, pos: Vec[Double], dim: Vec[Int], follow: Entity): Camera =
       val tex = r.createTexture(PixelFormat.RGBA8888, TextureAccess.Target, dim.x, dim.y)
       tex.scaleMode = ScaleMode.Nearest
-      tex.blendMode = BlendMode.Blend
       new Camera(r, tex, pos, follow)
 
   case class Drawing private[Camera] (private val cam: Camera):

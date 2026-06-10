@@ -11,7 +11,11 @@ class State(
   val justReleased: MutSet[Scancode],
   val camera: Camera,
   val debug: Debug,
+  val spawn: Entity => Unit,
+  val destroy: Entity => Unit,
+  val isColliding: (Entity, Entity) => Boolean,
 ):
+
   def keyUp(key: Scancode) = !keyDown(key)
 
   def step(): Unit =
@@ -30,11 +34,20 @@ class State(
     camera.rect
 
 object State:
-  def apply(camera: Camera, debug: Debug): State =
+  def apply(
+      camera: Camera,
+      debug: Debug,
+      spawn: Entity => Unit,
+      destroy: Entity => Unit,
+      isColliding: (Entity, Entity) => Boolean
+  ): State =
     new State(
       justPressed = MutSet.empty,
       keyDown = MutSet.empty,
       justReleased = MutSet.empty,
       camera = camera,
       debug = debug,
+      spawn,
+      destroy,
+      isColliding,
     )

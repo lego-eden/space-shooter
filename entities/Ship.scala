@@ -104,4 +104,4 @@ end Ship
 object Ship:
   val turnRate = (2*math.Pi / 1.0)
   val accel = 200.0
-  val MaxShootCooldown = 0.01 // 0.2
+  val MaxShootCooldown = 0.2

@@ -20,7 +20,6 @@ class ShipGunShot(
   override def endDraw()(using d: Drawing): Unit =
     d.drawColorFloat = Color.white
     d.drawLine(screenPos - vel.normalize*1.0, screenPos)
-    d.drawPoint(screenPos)
 
 object ShipGunShot:
   val Speed = 500.0

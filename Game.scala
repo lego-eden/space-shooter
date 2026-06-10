@@ -92,10 +92,10 @@ class Game(
         cam.resize(worldDim)
       case _ =>
 
+    step(clock.deltaDouble)
+
     doDestroy()
     doSpawn()
-
-    step(clock.deltaDouble)
 
     val r = cam.r
 

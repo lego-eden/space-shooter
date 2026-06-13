@@ -58,6 +58,8 @@ object Vec:
 
   extension (u: Vec[Double])
     def floor: Vec[Double] = u.map(_.floor)
+    def dir: Double =
+      math.atan2(u.y, u.x)
 
   extension [A: Numeric](a: A)
     inline def *(u: Vec[A]): Vec[A] = u*a

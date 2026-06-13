@@ -11,6 +11,7 @@ class State(
   val justReleased: MutSet[Scancode],
   val camera: Camera,
   val debug: Debug,
+  val particle: ParticleManager,
   val spawn: Entity => Unit,
   val destroy: Entity => Unit,
   val isColliding: (Entity, Entity) => Boolean,
@@ -37,6 +38,7 @@ object State:
   def apply(
       camera: Camera,
       debug: Debug,
+      particle: ParticleManager,
       spawn: Entity => Unit,
       destroy: Entity => Unit,
       isColliding: (Entity, Entity) => Boolean
@@ -47,6 +49,7 @@ object State:
       justReleased = MutSet.empty,
       camera = camera,
       debug = debug,
+      particle,
       spawn,
       destroy,
       isColliding,

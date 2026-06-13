@@ -23,6 +23,7 @@ class Asteroid(
 
   onDestroy { state ?=>
     summon[Releasable[VertexBuffer]].release(vertexBuffer)
+    state.particle.random(pos, 30d -> 60d, 0.1 -> 0.5, n=15)
     size.smaller match
       case Some(smaller) =>
         for _ <- 0 until 3 do
@@ -47,14 +48,20 @@ class Asteroid(
 
     move((0,0), dt)
 
-    onCollision[ShipGunShot](shot =>
-      state.destroy(shot)
-      state.destroy(this)
-    )
     foreachCollider[ShipGunShot](shot =>
-      if absCollider.intersectsLine(shot.prevPos, shot.pos).nonEmpty then
-        state.destroy(shot)
-        state.destroy(this)
+      absCollider.intersectsLine(shot.prevPos, shot.pos) match
+        case Some((colPoint, _)) =>
+          state.particle.random(
+            shot.pos,
+            speed = (-shot.vel.abs*0.09) -> (-shot.vel.abs*0.02),
+            baseVel = vel,
+            angle = (shot.vel.dir - math.Pi*0.15, shot.vel.dir + math.Pi*0.15),
+            lifetime = 0.2 -> 0.4,
+            n=5
+          )
+          state.destroy(shot)
+          state.destroy(this)
+        case None =>
     )
 
   def renderAngle: Double =

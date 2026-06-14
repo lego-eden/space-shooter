@@ -19,6 +19,7 @@ class Ship(
     var dir: Double,
     var shootCooldown: Double = Ship.MaxShootCooldown,
     var trailCooldown: Double = Ship.MaxTrailCooldown,
+    var score: Long = 0,
 ) extends Entity, KinematicBody, Collider[Ship]:
   
   val relCollider = Shape.Circle((0.0, 0.0), 5)
@@ -69,6 +70,8 @@ class Ship(
         spawnTrailParticle(t, prevPos, prevVel, prevDir, acc, dt)
     end if
 
+    state.ui.text((UI.Top, UI.Center), s"$score")
+
   end step
 
   def shoot(
@@ -91,7 +94,7 @@ class Ship(
 
     val remainingTime = dt - tau
     val finalSpawnPos = muzzle + shotVel * remainingTime
-    val shot = ShipGunShot(finalSpawnPos, finalSpawnPos, shotVel)
+    val shot = ShipGunShot(this, finalSpawnPos, finalSpawnPos, shotVel)
     state.particle.random(
       finalSpawnPos,
       baseVel = spawnVel,

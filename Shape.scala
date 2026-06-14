@@ -5,6 +5,7 @@ import bearlyb.render.{VertexBuffer, Vertex}
 import Vec.*
 import scala.util.Using
 import scala.util.boundary
+import util.clamp
 
 enum Shape:
   case Rect(x: Double, y: Double, w: Double, h: Double)
@@ -18,15 +19,43 @@ enum Shape:
         (p1-p2).abs < (r1+r2)
       case (rect: Rect, circle: Circle) =>
         val blr = rect.toBlRect
-        val corners = Seq(
-          (blr.x, blr.y),
-          (blr.x, blr.ymax),
-          (blr.xmax, blr.ymax),
-          (blr.xmax, blr.y),
-        )
-        corners.exists(p => circle.contains(p))
+        val nearest = circle.at.clamp(blr)
+        (circle.at-nearest).abs < circle.r
       case (circle: Circle, rect: Rect) =>
         rect.overlaps(circle)
+
+  def minTrVecs(other: Shape): Option[(`this`: Vec[Double], other: Vec[Double])] =
+    (this, other) match
+      case (a: Rect, b: Rect) =>
+        val bla = a.toBlRect
+        val blb = b.toBlRect
+        val overlap = bla.intersection(blb)
+        if overlap.isEmpty then
+          None
+        else
+          if overlap.w < overlap.h then
+            if a.x < b.x then
+              Some((-overlap.w/2, 0.0), (overlap.w/2, 0.0))
+            else
+              Some((overlap.w/2, 0.0), (-overlap.w/2, 0.0))
+          else
+            if a.y < b.y then
+              Some((0.0, -overlap.h/2), (0.0, overlap.h/2))
+            else
+              Some((0.0, overlap.h/2), (0.0, -overlap.h/2))
+      case (Circle(p1, r1), Circle(p2, r2)) =>
+        val diff = p2 - p1
+        val dist = diff.abs
+        lazy val normal = diff / dist
+        val depth = (r1 + r2) - dist
+        lazy val mtv = depth*normal
+        if depth < 0 then
+          None
+        else
+          Some(-mtv/2, mtv/2)
+      case (c: Circle, r: Rect) => r.minTrVecs(c).map(_.toTuple.reverse)
+      case (r: Rect, c: Circle) => ???
+        
 
   def intersectsLine(from: Vec[Double], to: Vec[Double]): Option[(near: Vec[Double], far: Vec[Double])] =
     this match

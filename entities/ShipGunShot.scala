@@ -8,6 +8,7 @@ import bearlyb.render.VertexBuffer
 import bearlyb.render.Vertex
 
 class ShipGunShot(
+    val shotFrom: Ship,
     var pos: Vec[Double],
     var prevPos: Vec[Double],
     var vel: Vec[Double],

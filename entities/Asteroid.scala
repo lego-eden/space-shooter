@@ -34,7 +34,7 @@ class Asteroid(
   def rotationSpeed: Double = 2*math.Pi / secondsPerRotation
 
   def centerOfMass: Vec[Double] = 
-    corners.map(p => p.rotate(renderAngle).map(_.round.toDouble)).reduce(_+_) / corners.length
+    corners.map(p => p.rotate(angle).map(_.round.toDouble)).reduce(_+_) / corners.length
   def relCollider: Shape = Shape.Circle(centerOfMass, size.collisionRadius)
 
   override def step(dt: Double)(using state: State): Unit =
@@ -59,18 +59,14 @@ class Asteroid(
             lifetime = 0.2 -> 0.4,
             n=5
           )
+          shot.shotFrom.score += Scores.asteroid
           state.destroy(shot)
           state.destroy(this)
         case None =>
     )
 
-  def renderAngle: Double =
-    val snapToN = 20.0
-    val snapAngle = 2*math.Pi / snapToN
-    (angle / snapAngle).floor * snapAngle
-
   def cornersOnScreen(using Drawing): Seq[Vec[Double]] =
-    corners.map(p => screenPos + p.rotate(renderAngle).map(_.round.toDouble))
+    corners.map(p => screenPos + p.rotate(angle).map(_.round.toDouble))
 
   override def draw()(using drawing: Drawing): Unit =
     import drawing.*

@@ -64,7 +64,7 @@ class ParticleManager private (
 
   inline def alpha(inline i: Int) = 1.0 - (pt(i)/plifetime(i))
 
-  override def endDraw()(using drawing: Drawing): Unit =
+  override def beginDraw()(using drawing: Drawing): Unit =
     for
       i <- 0 until ParticleManager.NParticles
       // if pt(i) < 1.0
@@ -77,7 +77,7 @@ class ParticleManager private (
       pt(i) = plifetime(i) min (pt(i) + dt)
       if pt(i) >= plifetime(i) then
         freeParticles.add(i): Unit
-  end endDraw
+  end beginDraw
 
 object ParticleManager:
   

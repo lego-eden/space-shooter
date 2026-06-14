@@ -1,5 +1,6 @@
 //> using scala 3.8.3
 //> using dep io.github.lego-eden::bearlyb:0.2.4
+//> using option -deprecation
 
 package spacegame
 

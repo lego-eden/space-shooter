@@ -22,13 +22,14 @@ class Game(
   cam: Camera,
   debug: Debug,
   particleMan: ParticleManager,
+  ui: UI,
   clock: Clock,
   var time: Double,
   var fps: Double,
 ):
   import Game.MaxTilesVisible, Game.TileSize
 
-  val state = State(cam, debug, particleMan, spawn, destroy, isColliding)
+  val state = State(cam, debug, particleMan, ui, spawn, destroy, isColliding)
 
   def step(dt: Double): Unit =
     entities.foreach(_.beginStep(dt)(using state))
@@ -39,6 +40,7 @@ class Game(
     entities.foreach(camera.beginDraw)
     entities.foreach(camera.draw)
     entities.foreach(camera.endDraw)
+    ui.draw(camera)
 
   def spawn(e: Entity): Unit =
     spawnQueue.append(e)
@@ -156,6 +158,7 @@ object Game:
     val cam = Camera(r, (0, 0), worldDim, shipFollow)
     val particleMan = ParticleManager()
     val spaceDust = Seq.fill(1000)(SpaceDust.randomSpaceDust(cam.rect))
+    val ui = UI()
 
     val game = new Game(
       worldDim,
@@ -165,12 +168,14 @@ object Game:
       cam,
       debug,
       particleMan,
+      ui,
       clock = Clock(),
       time = 0.0,
       fps = 0.0,
     )
 
-    val asteroids = AsteroidCluster.fillWithin(50, game.state.windowRect.expandN(3), game.state.windowRect)(using game.state)
+    // val asteroids = AsteroidCluster.fillWithin(50, game.state.windowRect.expandN(3), game.state.windowRect)(using game.state)
+    val asteroids = AsteroidCluster()
 
     game.spawn(cam, spaceDust*, ship, shipFollow, asteroids, particleMan, debug)
     game.run()

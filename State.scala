@@ -12,6 +12,7 @@ class State(
   val camera: Camera,
   val debug: Debug,
   val particle: ParticleManager,
+  val ui: UI,
   val spawn: Entity => Unit,
   val destroy: Entity => Unit,
   val isColliding: (Entity, Entity) => Boolean,
@@ -39,6 +40,7 @@ object State:
       camera: Camera,
       debug: Debug,
       particle: ParticleManager,
+      ui: UI,
       spawn: Entity => Unit,
       destroy: Entity => Unit,
       isColliding: (Entity, Entity) => Boolean
@@ -50,6 +52,7 @@ object State:
       camera = camera,
       debug = debug,
       particle,
+      ui,
       spawn,
       destroy,
       isColliding,

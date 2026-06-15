@@ -54,8 +54,29 @@ enum Shape:
         else
           Some(-mtv/2, mtv/2)
       case (c: Circle, r: Rect) => r.minTrVecs(c).map(_.toTuple.reverse)
-      case (r: Rect, c: Circle) => ???
-        
+      case (r: Rect, c: Circle) =>
+        val blr = r.toBlRect
+        lazy val nearest = c.at.clamp(blr)
+        lazy val dist = (c.at - nearest).abs
+        if !blr.contains(c.at) then
+          if dist >= c.r then None
+          else
+            val depth = c.r - dist
+            val mtv = ((nearest - c.at)/dist) * depth
+            Some(mtv/2d, -mtv/2d)
+        else
+          val dists = Seq(
+            ((-1d, 0d), c.at.x - blr.x), 
+            ((1d, 0d),  blr.xmax - c.at.x), 
+            ((0d, -1d), c.at.y - blr.y), 
+            ((0d, 1d),  blr.ymax - c.at.y), 
+          )
+          val (n, dist) = dists.minBy((_, d) => d)
+          val mtv = n * (dist + c.r)
+          Some(-mtv/2d, mtv/2d)
+        end if
+
+  end minTrVecs
 
   def intersectsLine(from: Vec[Double], to: Vec[Double]): Option[(near: Vec[Double], far: Vec[Double])] =
     this match

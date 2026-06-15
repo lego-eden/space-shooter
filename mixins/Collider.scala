@@ -21,8 +21,16 @@ trait Collider[T](using tag: ClassTag[T]):
   def isColliding[B](other: Collider[B]): Boolean =
     absCollider.overlaps(other.absCollider)
 
-  def onCollision[B <: Collider[?]](body: B => Unit)(using otherCache: Collider.Cache[B]): Unit =
+  def onOverlap[B <: Collider[?]](body: B => Unit)(using otherCache: Collider.Cache[B]): Unit =
     otherCache.filter(isColliding).foreach(body)
+
+  def onCollision[B <: Collider[?]](body: (B, Vec[Double], Vec[Double]) => Unit)(using otherCache: Collider.Cache[B]): Unit =
+    otherCache.iterator
+      .filter(other => !(other eq this))
+      .map(other => (other, this.absCollider.minTrVecs(other.absCollider)))
+      .collect:
+        case (other, Some(thisVec, otherVec)) => (other, thisVec, otherVec)
+      .foreach(body.tupled)
 
   def foreachCollider[B <: Collider[?]](body: B => Unit)(using otherCache: Collider.Cache[B]): Unit =
     otherCache.foreach(body)

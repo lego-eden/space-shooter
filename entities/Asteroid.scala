@@ -45,8 +45,22 @@ class Asteroid(
       angle -= 2*math.Pi
 
     pos = pos.wrap(state.windowRect.expandN(3))
-
     move((0,0), dt)
+
+    onCollision[Ship]((ship, thisTrVec, otherTrVec) =>
+      // this.pos += thisTrVec
+      ship.pos += otherTrVec
+      // this.vel = this.vel.reflect(thisTrVec)
+      ship.vel = ship.vel.reflect(otherTrVec)*0.5
+      state.destroy(this)
+    )
+
+    onCollision[Asteroid]((other, thisTrVec, otherTrVec) =>
+      this.pos += thisTrVec
+      other.pos += otherTrVec
+      this.vel = -this.vel
+      other.vel = -other.vel
+    )
 
     foreachCollider[ShipGunShot](shot =>
       absCollider.intersectsLine(shot.prevPos, shot.pos) match

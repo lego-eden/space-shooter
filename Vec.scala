@@ -56,6 +56,14 @@ object Vec:
     def lerp(to: Vec[A], t: A): Vec[A] =
       from + (to - from) * t
 
+  extension [A: Fractional as frac](a: Vec[A])
+    def project(on: Vec[A]): Vec[A] =
+      import scala.math.Fractional.Implicits.infixFractionalOps
+      (a.dot(on)/on.dot(on))*on
+
+    def reflect(n: Vec[A]): Vec[A] =
+      a - a.project(n)*frac.fromInt(2)
+
   extension (u: Vec[Double])
     def floor: Vec[Double] = u.map(_.floor)
     def dir: Double =

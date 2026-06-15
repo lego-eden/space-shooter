@@ -3,6 +3,8 @@ package spacegame.util
 import spacegame.Vec, Vec.*
 import bearlyb.Rect
 import spacegame.{State, Debug}
+import scala.compiletime.ops.int.S
+import scala.compiletime.constValue
 
 def debug(using state: State): Debug = state.debug
 
@@ -46,4 +48,3 @@ extension (u: Vec[Double])
 extension [A: Fractional as frac](from: A)
   def lerp(to: A, t: A): A =
     frac.plus(from, frac.times(frac.minus(to, from), t))
-

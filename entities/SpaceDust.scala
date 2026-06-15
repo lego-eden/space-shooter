@@ -10,8 +10,7 @@ import util.*
 
 class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Double) extends Entity:
   def containment(windowRect: Rect[Double]): Rect[Double] = 
-    val Rect(rx, ry, rw, rh) = windowRect
-    Rect(rx-rw, ry-rh, 3*rw, 3*rh)
+    windowRect.expandN(3)
 
   def randomize(windowRect: Rect[Double]): Unit =
     pos = Vec.randomInRect(containment(windowRect)).floor

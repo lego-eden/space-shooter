@@ -33,17 +33,19 @@ class ShipGunShot(
 
   override def endDraw()(using d: Drawing): Unit =
     d.drawColorFloat = Color.white
-    // d.drawLine(screenPos - vel.normalize*1.0, screenPos)
-    var i = 0
-    ShipGunShot.ProjectileBuf.mapInPlace(v =>
-      var result = v.copy(cornerPosition(i).map(_.toFloat))
-      i += 1
-      result
-    ): Unit
-    d.renderGeometry(
-      ShipGunShot.ProjectileBuf,
-      indices = ShipGunShot.ProjectileBufIndices
-    )
+    d.drawLine(screenPos - vel.normalize*1.0, screenPos)
+    // d.drawLine(d.screenPosOf(prevPos), screenPos)
+
+    // var i = 0
+    // ShipGunShot.ProjectileBuf.mapInPlace(v =>
+    //   var result = v.copy(cornerPosition(i).map(_.toFloat))
+    //   i += 1
+    //   result
+    // ): Unit
+    // d.renderGeometry(
+    //   ShipGunShot.ProjectileBuf,
+    //   indices = ShipGunShot.ProjectileBufIndices
+    // )
 
 object ShipGunShot:
   val Speed = 800.0

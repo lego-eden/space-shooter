@@ -5,6 +5,7 @@ import Vec.*
 import scala.collection.mutable.BitSet
 import spacegame.Camera.Drawing
 import bearlyb.rect.Rect
+import util.lerp as slerp
 
 class ParticleManager private (
     private val px: Array[Double],
@@ -54,7 +55,7 @@ class ParticleManager private (
         py(i) = pos.y
         pvx(i) = vel.x
         pvy(i) = vel.y
-        pt(i) = initTime
+        pt(i) = initTime min lifetime
         plifetime(i) = lifetime
       case None =>
         Console.err.println("Err: failed to create particle")
@@ -72,9 +73,11 @@ class ParticleManager private (
     do
       drawing.drawColorFloat = Color.white.withAlpha(alpha(i).toFloat)
       drawing.drawPoint(drawing.screenPosOf(px(i), py(i)))
+
       px(i) += dt * pvx(i)
       py(i) += dt * pvy(i)
       pt(i) = plifetime(i) min (pt(i) + dt)
+
       if pt(i) >= plifetime(i) then
         freeParticles.add(i): Unit
   end beginDraw

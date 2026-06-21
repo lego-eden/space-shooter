@@ -13,9 +13,9 @@ class State(
   val debug: Debug,
   val particle: ParticleManager,
   val ui: UI,
+  var qt: Quadtree,
   val spawn: Entity => Unit,
   val destroy: Entity => Unit,
-  val isColliding: (Entity, Entity) => Boolean,
 ):
 
   def keyUp(key: Scancode) = !keyDown(key)
@@ -43,7 +43,6 @@ object State:
       ui: UI,
       spawn: Entity => Unit,
       destroy: Entity => Unit,
-      isColliding: (Entity, Entity) => Boolean
   ): State =
     new State(
       justPressed = MutSet.empty,
@@ -53,7 +52,7 @@ object State:
       debug = debug,
       particle,
       ui,
+      Quadtree(Rect.empty),
       spawn,
       destroy,
-      isColliding,
     )

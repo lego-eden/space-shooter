@@ -47,19 +47,22 @@ class Asteroid(
     pos = pos.wrap(state.windowRect.expandN(3))
     move((0,0), dt)
 
-    onCollision[Ship]((ship, thisTrVec, otherTrVec) =>
-      // this.pos += thisTrVec
-      ship.pos += otherTrVec
-      // this.vel = this.vel.reflect(thisTrVec)
-      ship.vel = ship.vel.reflect(otherTrVec)*0.5
-      state.destroy(this)
-    )
-
-    onCollision[Asteroid]((other, thisTrVec, otherTrVec) =>
-      this.pos += thisTrVec
-      other.pos += otherTrVec
-      this.vel = -this.vel
-      other.vel = -other.vel
+    onCollision((other, thisTrVec, otherTrVec) => other match
+      case other: Asteroid =>
+        val vA1 = this.vel.project(thisTrVec)
+        val vA1Rest = this.vel - vA1
+        val vB1 = other.vel.project(otherTrVec)
+        val vB1Rest = other.vel - vB1
+        val mA = this.size.mass
+        val mB = other.size.mass
+        val mDen = 1/(mA + mB)
+        val vA2 = (mA-mB)*mDen*vA1 + 2*mB*mDen*vB1
+        val vB2 = 2*mA*mDen*vA1 + (mB-mA)*mDen*vB1
+        this.vel = vA2 + vA1Rest
+        other.vel = vB2 + vB1Rest
+        this.pos += thisTrVec
+        other.pos += otherTrVec
+      case _ =>
     )
 
     foreachCollider[ShipGunShot](shot =>
@@ -136,6 +139,11 @@ object Asteroid:
     lazy val collisionRadius: Double =
       // radiuses.sum / radiuses.length
       radiuses(1)
+
+    lazy val mass: Double = this match
+      case Small => 1
+      case Medium => 5
+      case Large => 15
 
     def randomCorners(): Seq[Vec[Double]] =
       val angleDelta = 2*math.Pi/numCorners

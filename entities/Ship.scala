@@ -1,7 +1,7 @@
 package spacegame
 
 import bearlyb.scancode.Scancode
-import Vec.{`*`, +, -, /, rotate, map, dir, lerp as vlerp}
+import Vec.{`*`, +, -, /, rotate, map, dir, lerp as vlerp, project}
 import bearlyb.render.VertexBuffer
 
 import scala.math
@@ -43,6 +43,30 @@ class Ship(
         (0, 0)
 
     move(acc, dt)
+
+    onCollision((other, thisTrVec, otherTrVec) => other match
+      case asteroid: Asteroid =>
+        val vA1 = this.vel.project(thisTrVec)
+        val vA1Rest = this.vel - vA1
+        val vB1 = asteroid.vel.project(otherTrVec)
+        val vB1Rest = asteroid.vel - vB1
+        val mA = Ship.Mass
+        val mB = asteroid.size.mass
+        val mDen = Ship.Dampening/(mA + mB)
+        val vA2 = (mA-mB)*mDen*vA1 + 2*mB*mDen*vB1
+        val vB2 = 2*mA*mDen*vA1 + (mB-mA)*mDen*vB1
+        this.vel = vA2 + vA1Rest
+        asteroid.vel = vB2 + vB1Rest
+        this.pos += thisTrVec
+        asteroid.pos += otherTrVec
+        state.particle.random(
+          pos,
+          speed = 10d -> 200d,
+          lifetime = 0.1d -> 1.4d,
+          n = 80,
+        )
+      case _ =>
+    )
 
     if keyDown(Scancode.Space) then
       val prevShootCooldown = shootCooldown
@@ -143,7 +167,7 @@ class Ship(
         baseVel = spawnVel,
         speed = -Ship.TrailParticleSpeed,
         lifetime = 0.1 -> 0.15,
-        initTime = tau,
+        initTime = remainingTime, //tau,
         angle = pDir,
       )
     end for
@@ -186,3 +210,5 @@ object Ship:
   val TrailParticlesPerSecond = 150.0//150.0
   val MaxTrailCooldown = 1/TrailParticlesPerSecond
   val TrailParticleSpeed = 120.0
+  val Mass = 0.001
+  val Dampening = 0.5 //0.5

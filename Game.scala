@@ -10,6 +10,7 @@ import bearlyb.*
 import bearlyb.time.Clock
 import bearlyb.render.Renderer.LogicalPresentation
 import bearlyb.video.BlendMode
+import bearlyb.rect.Rect
 
 import spacegame.util.*
 import scala.collection.mutable.HashSet
@@ -29,9 +30,19 @@ class Game(
 ):
   import Game.MaxTilesVisible, Game.TileSize
 
-  val state = State(cam, debug, particleMan, ui, spawn, destroy, isColliding)
+  val state = State(cam, debug, particleMan, ui, spawn, destroy)
 
   def step(dt: Double): Unit =
+    val colliders =
+      entities.iterator.collect:
+        case collider: Collider[?] => collider
+      .toVector
+    val extents = colliders.flatMap(c =>
+      val (mn, mx) = c.absCollider.extents
+      Vector(mn, mx)
+    )
+    state.qt = Quadtree(Rect.enclosePoints(if extents.isEmpty then Vector((0d, 0d)) else extents))
+    colliders.foreach(state.qt += _)
     entities.foreach(_.beginStep(dt)(using state))
     entities.foreach(_.step(dt)(using state))
     entities.foreach(_.endStep(dt)(using state))

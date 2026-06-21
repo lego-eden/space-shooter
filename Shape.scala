@@ -53,7 +53,8 @@ enum Shape:
           None
         else
           Some(-mtv/2, mtv/2)
-      case (c: Circle, r: Rect) => r.minTrVecs(c).map(_.toTuple.reverse)
+      case (c: Circle, r: Rect) =>
+        r.minTrVecs(c).map(_.toTuple.reverse)
       case (r: Rect, c: Circle) =>
         val blr = r.toBlRect
         lazy val nearest = c.at.clamp(blr)
@@ -96,6 +97,23 @@ enum Shape:
         Rect(x, y, w, h)
       case Circle(at, r) =>
         Circle(at+pos, r)
+
+  def containedWithin(region: BlRect[Double]): Boolean =
+    val (min, max) = extents
+    region.x <= min.x
+    && region.y <= min.y
+    && region.xmax >= max.x
+    && region.ymax >= max.y
+
+  lazy val extents: (min: Vec[Double], max: Vec[Double]) =
+    this match
+      case Circle(at, radius) =>
+        val topLeft = at - (radius, radius)
+        val bottomRight = at + (radius, radius)
+        (topLeft, bottomRight)
+      case rect: Rect =>
+        val blr = rect.toBlRect
+        (blr.pos, blr.pos + blr.dim)
 
   def draw()(using drawing: Camera.Drawing): Unit =
     this match

@@ -16,6 +16,7 @@ import spacegame.util.*
 import scala.collection.mutable.HashSet
 
 class Game(
+  window: Window,
   var worldDim: (w: Int, h: Int),
   entities: ArrayBuffer[Entity],
   spawnQueue: ArrayDeque[Entity],
@@ -135,9 +136,11 @@ class Game(
 
     r.renderScale = (2, 2)
     r.drawColor = (255, 255, 0, 255)
-    r.fillRect(Rect(0, 0, 8*5, 8))
+    val (ww, wh) = window.size
+    val pos = (ww/2-8*5, 0)
+    r.fillRect(Rect(pos, (8*5, 8)))
     r.drawColor = (0, 0, 0, 255)
-    r.renderDebugText(0, 0)(f"${fps}%5.0f")
+    r.renderDebugText(pos)(f"${fps}%5.0f")
     r.renderScale = (1, 1)
 
     r.present()
@@ -160,22 +163,24 @@ object Game:
   def run(): Unit =
     val worldDim: (w: Int, h: Int) = ((MaxTilesVisible*1.5).toInt*TileSize, MaxTilesVisible*TileSize)
 
-    val w = Window("Space game", worldDim.w*4, worldDim.h*4, Window.Flag.Fullscreen, Window.Flag.Resizable)
-    val r = w.renderer
+    val window = Window("Space game", worldDim.w*4, worldDim.h*4, Window.Flag.Fullscreen, Window.Flag.Resizable)
+    val r = window.renderer
 
     val debug = Debug()
-    val ship = Ship((0, 0), (0, 0), 0)
-    val shipFollow = ShipFollow(ship, (0,0))
+    val ship = Ship()
+    val shipFollow = ShipFollow(ship)
     val cam = Camera(r, (0, 0), worldDim, shipFollow)
     val particleMan = ParticleManager()
     val spaceDust = Seq.fill(1000)(SpaceDust.randomSpaceDust(cam.rect))
     val ui = UI()
+    val asteroids = AsteroidCluster()
 
     val game = new Game(
+      window,
       worldDim,
       entities = ArrayBuffer.empty,
       spawnQueue = ArrayDeque.empty,
-      destroyQueue = HashSet.empty, //ArrayDeque.empty,
+      destroyQueue = HashSet.empty,
       cam,
       debug,
       particleMan,
@@ -184,9 +189,6 @@ object Game:
       time = 0.0,
       fps = 0.0,
     )
-
-    // val asteroids = AsteroidCluster.fillWithin(50, game.state.windowRect.expandN(3), game.state.windowRect)(using game.state)
-    val asteroids = AsteroidCluster()
 
     game.spawn(cam, spaceDust*, ship, shipFollow, asteroids, particleMan, debug)
     game.run()

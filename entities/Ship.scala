@@ -14,13 +14,15 @@ import spacegame.util.lerp
 import scala.util.Random
 
 class Ship(
-    var pos: Vec[Double],
-    var vel: Vec[Double],
-    var dir: Double,
+    var hp: Int = Ship.MaxHealth,
+    var pos: Vec[Double] = (0, 0),
+    var vel: Vec[Double] = (0, 0),
+    var dir: Double = 0,
     var shootCooldown: Double = Ship.MaxShootCooldown,
     var trailCooldown: Double = Ship.MaxTrailCooldown,
     var score: Long = 0,
-) extends Entity, KinematicBody, Collider[Ship]:
+    var justGotHitTimer: Double = 0,
+) extends Entity, KinematicBody, Collider[Ship], Health:
   
   val relCollider = Shape.Circle((0.0, 0.0), 5)
 
@@ -44,6 +46,10 @@ class Ship(
 
     move(acc, dt)
 
+    if justGotHit then
+      justGotHitTimer -= dt
+    end if
+
     onCollision((other, thisTrVec, otherTrVec) => other match
       case asteroid: Asteroid =>
         val vA1 = this.vel.project(thisTrVec)
@@ -59,12 +65,15 @@ class Ship(
         asteroid.vel = vB2 + vB1Rest
         this.pos += thisTrVec
         asteroid.pos += otherTrVec
-        state.particle.random(
-          pos,
-          speed = 10d -> 200d,
-          lifetime = 0.1d -> 1.4d,
-          n = 80,
-        )
+        if !justGotHit then
+          state.particle.random(
+            pos,
+            speed = 10d -> 200d,
+            lifetime = 0.1d -> 1.4d,
+            n = 80,
+          )
+          hp -= 1
+          justGotHitTimer = Ship.JustGotHitInvincibilityTime
       case _ =>
     )
 
@@ -95,7 +104,7 @@ class Ship(
     end if
 
     state.ui.text((UI.Top, UI.Center), s"$score")
-
+    state.ui.text((UI.Top, UI.Left), s"$hp HP")
   end step
 
   def shoot(
@@ -184,7 +193,11 @@ class Ship(
     Using.resource(VertexBuffer(verts*)): vb =>
       renderGeometry(vb)
 
-    drawColorFloat = Color.white
+    if justGotHit then
+      val alpha = math.sin(4*math.Pi*justGotHitTimer)*0.25 + 0.75
+      drawColorFloat = Color.white.withAlpha(alpha.toFloat)
+    else
+      drawColorFloat = Color.white
     drawLine(shipFront, wingTipLeft)
     drawLine(shipFront, wingTipRight)
     drawLine(wingTipRight, shipBack)
@@ -200,6 +213,8 @@ class Ship(
   def wingTipLeft(using Camera.Drawing)  = offset(-6.0,  8.0)
   def wingTipRight(using Camera.Drawing) = offset(-6.0, -8.0)
 
+  def justGotHit = justGotHitTimer > 0.0
+
 end Ship
 
 object Ship:
@@ -207,8 +222,10 @@ object Ship:
   val accel = 200.0
   val ShotsPerSecond = 5.0
   val MaxShootCooldown = 1/ShotsPerSecond
-  val TrailParticlesPerSecond = 150.0//150.0
+  val TrailParticlesPerSecond = 150.0
   val MaxTrailCooldown = 1/TrailParticlesPerSecond
   val TrailParticleSpeed = 120.0
   val Mass = 0.001
-  val Dampening = 0.5 //0.5
+  val Dampening = 0.5
+  val MaxHealth = 3
+  val JustGotHitInvincibilityTime = 2.0

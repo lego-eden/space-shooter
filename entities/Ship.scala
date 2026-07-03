@@ -1,7 +1,7 @@
 package spacegame
 
 import bearlyb.scancode.Scancode
-import Vec.{`*`, +, -, /, rotate, map, dir, lerp as vlerp, project}
+import Vec.{`*`, +, -, /, rotate, map, dir, lerp as vlerp, project, x, y, onScreen}
 import bearlyb.render.VertexBuffer
 
 import scala.math
@@ -24,7 +24,8 @@ class Ship(
     var justGotHitTimer: Double = 0,
 ) extends Entity, KinematicBody, Collider[Ship], Health:
   
-  val relCollider = Shape.Circle((0.0, 0.0), 5)
+  // val relCollider = Shape.Circle((0.0, 0.0), 5)
+  def relCollider = Shape.Convex(Vector(shipFront, wingTipRight*0.5, wingTipLeft*0.5))
 
   override def step(dt: Double)(using state: State): Unit =
     import state.*
@@ -107,6 +108,26 @@ class Ship(
     state.ui.text((UI.Top, UI.Left), s"$hp HP")
   end step
 
+  override def endStep(dt: Double)(using state: State): Unit =
+    ()
+    // val from1 = pos + (20d, 0d).rotate(dir)
+    // val to1 = pos + (80d, 0d).rotate(dir)
+    //
+    // state.debug: drawing ?=>
+    //   drawing.drawColorFloat = Color.green
+    //   drawing.drawLine(drawing.screenPosOf(from1), drawing.screenPosOf(to1))
+    //
+    // state.qt.foreachLineIntersection(from1, to1):
+    //   case (a: Asteroid, near, far) =>
+    //     state.debug: drawing ?=>
+    //       drawing.drawColorFloat = Color.blue
+    //       a.absCollider.draw()
+    //     for p <- Seq(near, far) do
+    //       state.debug.drawRed(Rect(p.x-1d, p.y-1d, 3d, 3d))
+    //   case _ => ()
+  end endStep
+
+
   def shoot(
       t: Double,
       prevPos: Vec[Double],
@@ -188,7 +209,7 @@ class Ship(
   override def draw()(using drawing: Camera.Drawing): Unit =
     import drawing.*
 
-    val points = Seq(shipFront, wingTipRight, shipBack, shipFront, wingTipLeft, shipBack)
+    val points = Seq(screenShipFront, screenWingTipRight, screenShipBack, screenShipFront, screenWingTipLeft, screenShipBack)
     val verts: Seq[Vertex[Double]] = points.map(p => Vertex(p+(0.5,0.5), Color.black, (0.0,0.0)))
     Using.resource(VertexBuffer(verts*)): vb =>
       renderGeometry(vb)
@@ -198,22 +219,27 @@ class Ship(
       drawColorFloat = Color.white.withAlpha(alpha.toFloat)
     else
       drawColorFloat = Color.white
-    drawLine(shipFront, wingTipLeft)
-    drawLine(shipFront, wingTipRight)
-    drawLine(wingTipRight, shipBack)
-    drawLine(wingTipLeft, shipBack)
+    drawLine(screenShipFront, screenWingTipLeft)
+    drawLine(screenShipFront, screenWingTipRight)
+    drawLine(screenWingTipRight, screenShipBack)
+    drawLine(screenWingTipLeft, screenShipBack)
     
   end draw
 
-  def offset(d: Vec[Double])(using Camera.Drawing) =
-    (screenPos + d.rotate(dir).map(_.round.toDouble))
+  def offset(d: Vec[Double]): Vec[Double] =
+    (d.rotate(dir).map(_.round.toDouble))
 
-  def shipFront(using Camera.Drawing)    = offset(10.0,  0.0)
-  def shipBack(using Camera.Drawing)     = offset(-3.0,  0.0)
-  def wingTipLeft(using Camera.Drawing)  = offset(-6.0,  8.0)
-  def wingTipRight(using Camera.Drawing) = offset(-6.0, -8.0)
+  def screenShipFront(using Camera.Drawing)    = (pos + shipFront).onScreen
+  def screenShipBack(using Camera.Drawing)     = (pos + shipBack).onScreen
+  def screenWingTipLeft(using Camera.Drawing)  = (pos + wingTipLeft).onScreen
+  def screenWingTipRight(using Camera.Drawing) = (pos + wingTipRight).onScreen
 
-  def justGotHit = justGotHitTimer > 0.0
+  def shipFront    = offset(10.0,  0.0)
+  def shipBack     = offset(-3.0,  0.0)
+  def wingTipLeft  = offset(-6.0,  8.0)
+  def wingTipRight = offset(-6.0, -8.0)
+
+  def justGotHit: Boolean = justGotHitTimer > 0d
 
 end Ship
 

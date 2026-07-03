@@ -31,7 +31,7 @@ class Game(
 ):
   import Game.MaxTilesVisible, Game.TileSize
 
-  val state = State(cam, debug, particleMan, ui, spawn, destroy)
+  given state: State = State(cam, debug, particleMan, ui, spawn, destroy)
 
   def step(dt: Double): Unit =
     val colliders =
@@ -44,15 +44,21 @@ class Game(
     )
     state.qt = Quadtree(Rect.enclosePoints(if extents.isEmpty then Vector((0d, 0d)) else extents))
     colliders.foreach(state.qt += _)
-    entities.foreach(_.beginStep(dt)(using state))
-    entities.foreach(_.step(dt)(using state))
-    entities.foreach(_.endStep(dt)(using state))
+    entities.foreach(_.beginStep(dt))
+    entities.foreach(_.step(dt))
+    entities.foreach(_.endStep(dt))
+    debug.beginStep(dt)(using state)
+    debug.step(dt)(using state)
+    debug.endStep(dt)(using state)
 
   def draw(camera: Camera): Unit =
     entities.foreach(camera.beginDraw)
     entities.foreach(camera.draw)
     entities.foreach(camera.endDraw)
     ui.draw(camera)
+    camera.beginDraw(debug)
+    camera.draw(debug)
+    camera.endDraw(debug)
 
   def spawn(e: Entity): Unit =
     spawnQueue.append(e)
@@ -190,7 +196,7 @@ object Game:
       fps = 0.0,
     )
 
-    game.spawn(cam, spaceDust*, ship, shipFollow, asteroids, particleMan, debug)
+    game.spawn(cam, spaceDust*, ship, shipFollow, asteroids, particleMan)
     game.run()
 
 end Game

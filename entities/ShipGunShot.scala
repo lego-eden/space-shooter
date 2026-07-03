@@ -12,14 +12,26 @@ class ShipGunShot(
     var pos: Vec[Double],
     var prevPos: Vec[Double],
     var vel: Vec[Double],
-) extends Entity, KinematicBody, Collider[ShipGunShot]:
-
-  override def relCollider: Shape = Shape.Circle((0.0, 0.0), 1.0)
+) extends Entity, KinematicBody:
 
   override def step(dt: Double)(using state: State): Unit =
     if !state.windowRect.expand(20.0).contains(pos) then state.destroy(this)
     prevPos = pos
     move((0, 0), dt)
+    state.qt.foreachLineIntersection(prevPos, pos):
+      case (a: Asteroid, near: Vec[Double], far: Vec[Double]) =>
+        state.particle.random(
+          pos,
+          speed = (-a.vel.abs*0.09) -> (-a.vel.abs*0.02),
+          baseVel = a.vel,
+          angle = (a.vel.dir - math.Pi*0.15, a.vel.dir + math.Pi*0.15),
+          lifetime = 0.2 -> 0.4,
+          n=5
+        )
+        shotFrom.score += Scores.asteroid
+        state.destroy(this)
+        state.destroy(a)
+      case _ => ()
 
   def offset(p: Vec[Double])(using d: Drawing): Vec[Double] =
     d.screenPosOf(pos + p.rotate(vel.dir))

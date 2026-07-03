@@ -68,6 +68,16 @@ enum Quadtree:
           .filter(region => Shape.Rect(region.r.x, region.r.y, region.r.w, region.r.h).overlaps(bounds))
           .flatMap(_.shapesIn(bounds))
 
+  private def shapesIntersectingLine(from: Vec[Double], to: Vec[Double]): Vector[Quadtree.Node] =
+    this match
+      case Leaf(r, nodes) =>
+        nodes
+      case Branch(r, nodes, nw, ne, sw, se) =>
+        nodes :++ Vector(nw, ne, sw, se)
+          .filter(region => Shape.Rect(region.r.x, region.r.y, region.r.w, region.r.h).intersectsLine(from, to).nonEmpty)
+          .flatMap(_.shapesIntersectingLine(from, to))
+    
+
   // def collidersOf(collider: Collider[?]): Vector[Collider[?]] =
   //   shapesIn(collider.absCollider).map(_.collider)
 
@@ -79,6 +89,14 @@ enum Quadtree:
       .collect:
         case (other, Some(colliderTrVec, otherTrVec)) =>
           (other, colliderTrVec, otherTrVec)
+      .foreach(body.tupled)
+
+  def foreachLineIntersection(from: Vec[Double], to: Vec[Double])(body: (Collider[?], Vec[Double], Vec[Double]) => Unit) =
+    shapesIntersectingLine(from, to).iterator
+      .map((shape, other) => (other, shape.intersectsLine(from, to)))
+      .collect:
+        case (other, Some(near, far)) =>
+          (other, near, far)
       .foreach(body.tupled)
 
 object Quadtree:

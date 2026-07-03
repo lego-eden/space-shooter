@@ -37,14 +37,40 @@ object Vec:
     def absSqrd: Double =
       u.toDoubleVec.map(n => n*n).sum
 
+    inline def perp: Vec[A] =
+      (num.negate(u.x), u.y)
+
     inline def normalize: Vec[Double] =
       u.toDoubleVec / u.abs
 
     infix def dot(v: Vec[A]): A =
       u.zip(v).map(num.times).sum
 
+    def isOverlapping(v: Vec[A]): Boolean =
+      import math.Ordering.Implicits.infixOrderingOps
+      val (min1, max1) = u
+      val (min2, max2) = v
+      if min1 < min2 then
+        min2 <= max1
+      else
+        min1 <= max2
+
+    def overlap(v: Vec[A]): Option[A] =
+      import math.Ordering.Implicits.infixOrderingOps
+      import math.Numeric.Implicits.infixNumericOps
+      if u.isOverlapping(v) then
+        val (min1, max1) = u
+        val (min2, max2) = v
+        val min = min1 max min2
+        val max = max1 min max2
+        Some(max - min)
+      else
+        None
+      
+
     inline def toIntVec: Vec[Int] = u.map(num.toInt)
     inline def toDoubleVec: Vec[Double] = u.map(num.toDouble)
+
 
   extension [A: ([t] =>> Fractional[t] | Integral[t]) as num](inline u: Vec[A])
     inline def /(inline a: A): Vec[A] =
@@ -68,6 +94,8 @@ object Vec:
     def floor: Vec[Double] = u.map(_.floor)
     def dir: Double =
       math.atan2(u.y, u.x)
+    inline def onScreen(using drawing: Camera.Drawing): Vec[Double] =
+      drawing.screenPosOf(u)
 
   extension [A: Numeric](a: A)
     inline def *(u: Vec[A]): Vec[A] = u*a
@@ -102,4 +130,5 @@ object Vec:
       case 2 => bottomRight
       case 3 => topRight
     randomInRect(chosenRect)
+      
 end Vec

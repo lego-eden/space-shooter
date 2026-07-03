@@ -16,7 +16,7 @@ class Asteroid(
     var angle: Double,
     val size: Asteroid.Size,
     var secondsPerRotation: Double,
-    val corners: Seq[Vec[Double]],
+    val corners: Vector[Vec[Double]],
     val cluster: AsteroidCluster,
     var vertexBuffer: VertexBuffer,
 ) extends Entity, KinematicBody, Collider[Asteroid]:
@@ -33,9 +33,11 @@ class Asteroid(
 
   def rotationSpeed: Double = 2*math.Pi / secondsPerRotation
 
-  def centerOfMass: Vec[Double] = 
-    corners.map(p => p.rotate(angle).map(_.round.toDouble)).reduce(_+_) / corners.length
-  def relCollider: Shape = Shape.Circle(centerOfMass, size.collisionRadius)
+  // def centerOfMass: Vec[Double] = 
+  //   corners.map(p => p.rotate(angle).map(_.round.toDouble)).reduce(_+_) / corners.length
+  // def relCollider: Shape = Shape.Circle(centerOfMass, size.collisionRadius)
+  def relCollider: Shape = Shape.Convex(corners.map(_.rotate(angle)))
+
 
   override def step(dt: Double)(using state: State): Unit =
     angle += rotationSpeed * dt
@@ -63,23 +65,6 @@ class Asteroid(
         this.pos += thisTrVec
         other.pos += otherTrVec
       case _ =>
-    )
-
-    foreachCollider[ShipGunShot](shot =>
-      absCollider.intersectsLine(shot.prevPos, shot.pos) match
-        case Some((colPoint, _)) =>
-          state.particle.random(
-            shot.pos,
-            speed = (-shot.vel.abs*0.09) -> (-shot.vel.abs*0.02),
-            baseVel = vel,
-            angle = (shot.vel.dir - math.Pi*0.15, shot.vel.dir + math.Pi*0.15),
-            lifetime = 0.2 -> 0.4,
-            n=5
-          )
-          shot.shotFrom.score += Scores.asteroid
-          state.destroy(shot)
-          state.destroy(this)
-        case None =>
     )
 
   def cornersOnScreen(using Drawing): Seq[Vec[Double]] =
@@ -145,9 +130,9 @@ object Asteroid:
       case Medium => 5
       case Large => 15
 
-    def randomCorners(): Seq[Vec[Double]] =
+    def randomCorners(): Vector[Vec[Double]] =
       val angleDelta = 2*math.Pi/numCorners
-      val cornerAngles = Seq.tabulate(numCorners)(i => angleDelta*i)
+      val cornerAngles = Vector.tabulate(numCorners)(i => angleDelta*i)
       val radiuses = Random.shuffle(this.radiuses)
       cornerAngles.zip(radiuses).map((a, r) =>
         (r, 0.0).rotate(a).map(_.toInt.toDouble)

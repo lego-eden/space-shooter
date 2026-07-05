@@ -15,7 +15,7 @@ class Camera private (
     val r: Renderer,
     var tex: Texture,
     var pos: Vec[Double],
-    val follow: Entity,
+    val follow: Entity & Position,
 ) extends Entity:
   override def beginStep(dt: Double)(using state: State): Unit =
     pos = pos.lerp(follow.pos, 1.0 - math.pow(Camera.FollowSpeed, dt))
@@ -42,7 +42,7 @@ class Camera private (
 object Camera:
   val FollowSpeed = 0.05
 
-  def apply(r: Renderer, pos: Vec[Double], dim: Vec[Int], follow: Entity): Camera =
+  def apply(r: Renderer, pos: Vec[Double], dim: Vec[Int], follow: Entity & Position): Camera =
       val tex = r.createTexture(PixelFormat.RGBA8888, TextureAccess.Target, dim.x, dim.y)
       tex.scaleMode = ScaleMode.Nearest
       new Camera(r, tex, pos, follow)

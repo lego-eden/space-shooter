@@ -12,7 +12,7 @@ class ShipGunShot(
     var pos: Vec[Double],
     var prevPos: Vec[Double],
     var vel: Vec[Double],
-) extends Entity, KinematicBody:
+) extends Entity, Position, KinematicBody:
 
   override def step(dt: Double)(using state: State): Unit =
     if !state.windowRect.expand(20.0).contains(pos) then state.destroy(this)

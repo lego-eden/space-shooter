@@ -47,9 +47,9 @@ class Game(
     entities.foreach(_.beginStep(dt))
     entities.foreach(_.step(dt))
     entities.foreach(_.endStep(dt))
-    debug.beginStep(dt)(using state)
-    debug.step(dt)(using state)
-    debug.endStep(dt)(using state)
+    debug.beginStep(dt)
+    debug.step(dt)
+    debug.endStep(dt)
 
   def draw(camera: Camera): Unit =
     entities.foreach(camera.beginDraw)

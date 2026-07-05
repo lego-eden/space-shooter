@@ -3,7 +3,7 @@ package spacegame
 import Vec.*
 
 trait KinematicBody:
-  this: Entity =>
+  this: Entity & Position =>
   
   var vel: Vec[Double]
   def move(acc: Vec[Double], dt: Double): Unit =

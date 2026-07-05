@@ -22,7 +22,7 @@ class Ship(
     var trailCooldown: Double = Ship.MaxTrailCooldown,
     var score: Long = 0,
     var justGotHitTimer: Double = 0,
-) extends Entity, KinematicBody, Collider[Ship], Health:
+) extends Entity, Position, KinematicBody, Collider[Ship], Health:
   
   // val relCollider = Shape.Circle((0.0, 0.0), 5)
   def relCollider = Shape.Convex(Vector(shipFront, wingTipRight*0.5, wingTipLeft*0.5))

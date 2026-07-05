@@ -16,8 +16,6 @@ class ParticleManager private (
     private val plifetime: Array[Double],
     private var dt: Double = 0.0,
 ) extends Entity:
-  var pos = (0, 0)
-
   val freeParticles =
     (0 until ParticleManager.NParticles).to(BitSet)
 

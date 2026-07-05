@@ -19,7 +19,7 @@ class Asteroid(
     val corners: Vector[Vec[Double]],
     val cluster: AsteroidCluster,
     var vertexBuffer: VertexBuffer,
-) extends Entity, KinematicBody, Collider[Asteroid]:
+) extends Entity, Position, KinematicBody, Collider[Asteroid]:
 
   onDestroy { state ?=>
     summon[Releasable[VertexBuffer]].release(vertexBuffer)

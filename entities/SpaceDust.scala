@@ -8,7 +8,7 @@ import Vec.*
 
 import util.*
 
-class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Double) extends Entity:
+class SpaceDust(var pos: Vec[Double], var time: Double, var animationLength: Double) extends Entity, Position:
   def containment(windowRect: Rect[Double]): Rect[Double] = 
     windowRect.expandN(3)
 

@@ -6,7 +6,7 @@ import scala.collection.mutable.HashMap
 import scala.reflect.ClassTag
 
 trait Collider[T](using tag: ClassTag[T]):
-  this: Entity & T =>
+  this: Entity & Position & T =>
 
   cache += this
   onDestroy(cache -= this)
